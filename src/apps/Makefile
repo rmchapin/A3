@@ -1,14 +1,20 @@
 include ../common.mk
 
-# flags for building the gtk library
-CFLAGS = $(CFLAGS_STD) \
-	$(CFLAGS_VX_GTK) \
+COMMON_FLAGS = $(CFLAGS_VX_GTK) \
 	$(CFLAGS_IMAGESOURCE) \
 	$(CFLAGS_MATH) \
 	$(CFLAGS_COMMON) \
 	$(CFLAGS_LCMTYPES) \
+	$(CFLAGS_ARM) \
+	$(CFLAGS_STEREO) \
 	$(CFLAGS_GSL) \
 	-O2
+
+CFLAGS = $(COMMON_FLAGS) \
+	$(CFLAGS_STD)
+
+CXXFLAGS = $(COMMON_FLAGS) \
+	$(CXX_FLAGS_STD)
 
 LDFLAGS = $(LDFLAGS_STD) \
 	$(LDFLAGS_VX_GTK) \
@@ -17,16 +23,9 @@ LDFLAGS = $(LDFLAGS_STD) \
 	$(LDFLAGS_COMMON) \
 	$(LDFLAGS_LCMTYPES) \
 	$(LDFLAGS_MAPPING) \
+	$(LDFLAGS_ARM) \
+	$(LDFLAGS_STEREO) \
 	$(LDFLAGS_GSL)
-
-CXXFLAGS = $(CXXFLAGS_STD) \
-	$(CFLAGS_VX_GTK) \
-	$(CFLAGS_IMAGESOURCE) \
-	$(CFLAGS_MATH) \
-	$(CFLAGS_COMMON) \
-	$(CFLAGS_LCMTYPES) \
-	$(CFLAGS_GSL) \
-	-O2
 
 LIBDEPS = $(call libdeps, $(LDFLAGS))
 
@@ -35,9 +34,13 @@ LIBEECS467_OBJS = eecs467_util.o
 
 BIN_EECS467_GUI_EXAMPLE = $(BIN_PATH)/eecs467_gui_example
 BIN_EECS467_REXARM_EXAMPLE = $(BIN_PATH)/eecs467_rexarm_example
+BIN_EECS467_MAIN = $(BIN_PATH)/eecs467_main
+BIN_EECS467_CALIBRATION = $(BIN_PATH)/eecs467_calibration
 
 ALL = $(LIB_EECS467) $(BIN_EECS467_GUI_EXAMPLE) \
-	$(BIN_EECS467_REXARM_EXAMPLE)
+	$(BIN_EECS467_REXARM_EXAMPLE) \
+	$(BIN_EECS467_MAIN) \
+	$(BIN_EECS467_CALIBRATION)
 
 all: $(ALL)
 
@@ -53,6 +56,14 @@ $(BIN_EECS467_REXARM_EXAMPLE): rexarm_example.o $(LIBDEPS)
 	@echo "\t$@"
 	@$(CC) -o $@ $^ $(LDFLAGS)
 	
+$(BIN_EECS467_MAIN): eecs467_main.o $(LIBDEPS)
+	@echo "\t$@"
+	@$(CXX) -o $@ $^ $(LDFLAGS)
+
+$(BIN_EECS467_CALIBRATION): eecs467_calibration.o $(LIBDEPS)
+	@echo "\t$@"
+	@$(CXX) -o $@ $^ $(LDFLAGS)
+
 clean:
 	@rm -f *.o *~ *.a
 	@rm -f $(ALL)
