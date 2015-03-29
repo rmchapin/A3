@@ -7,14 +7,14 @@ LDFLAGS = $(LDFLAGS_STD)
 
 LIBDEPS = $(call libdeps, $(LDFLAGS))
 
-LIB_ARM = $(LIB_PATH)/libarm.a
-LIB_ARM_OBJS = 
+LIB_A3 = $(LIB_PATH)/liba3.a
+LIB_A3_OBJS = 
 
-ALL = $(LIB_ARM)
+ALL = $(LIB_A3)
 
 all: $(ALL)
 
-$(LIB_ARM): $(LIB_ARM_OBJS) $(LIBDEPS)
+$(LIB_A3): $(LIB_A3_OBJS) $(LIBDEPS)
 	@echo "\t$@"
 	@ar rc $@ $^
 

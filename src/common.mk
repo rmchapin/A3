@@ -141,13 +141,9 @@ libdeps = $(filter $(wildcard $(LIB_PATH)/*.a), $(patsubst -l%, $(LIB_PATH)/lib%
 CFLAGS_COMMON  := -I$(SRC_PATH) -DCONFIG_DIR='"$(CONFIG_DIR)"'
 LDFLAGS_COMMON := -L$(LIB_PATH) -lcommon $(LDFLAGS_STD)
 
-# arm
-CFLAGS_ARM := -I$(SRC_PATH) $(CFLAGS_COMMON)
-LDFLAGS_ARM := -L$(LIB_PATH) -larm $(LDFLAGS_STD)
-
-# stereo
-CFLAGS_STEREO := -I$(SRC_PATH) $(CFLAGS_COMMON)
-LDFLAGS_STEREO := -L$(LIB_PATH) -lstereo $(LDFLAGS_STD)
+# a3
+CFLAGS_A3 := -I$(SRC_PATH) $(CFLAGS_COMMON)
+LDFLAGS_A3 := -L$(LIB_PATH) -la3 $(LDFLAGS_STD)
 
 # mapping
 CFLAGS_MAPPING  := -I$(SRC_PATH) $(CFLAGS_STD)
