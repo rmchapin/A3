@@ -3,9 +3,11 @@
 #include <Eigen/Dense>
 #include <cassert>
 
-std::pair<std::array<double, 3>, std::array<double, 2>> fitCurve(const std::vector<std::array<double, 3>>& pts) {
+std::pair<std::array<double, 3>, std::array<double, 2>> 
+fitCurve(const std::vector<std::array<double, 3>>& pts) {
 	assert(pts.size() >= 3);
 
+	// constructing matrices
 	Eigen::Matrix<double, Eigen::Dynamic, 3> yzMatrix(pts.size(), 3);
 	Eigen::Matrix<double, Eigen::Dynamic, 2> xyMatrix(pts.size(), 2);
 	Eigen::Matrix<double, Eigen::Dynamic, 1> xVec(pts.size(), 1);
@@ -23,11 +25,12 @@ std::pair<std::array<double, 3>, std::array<double, 2>> fitCurve(const std::vect
 		zVec(i) = pts[i][2];
 	}
 
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> quadratic = yzMatrix.colPivHouseholderQr().solve(zVec);
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> linear = xyMatrix.colPivHouseholderQr().solve(xVec);
-
-	std::array<double, 3> quadRet{{quadratic(0), quadratic(1), quadratic(2)}};
-	std::array<double, 2> linearRet{{linear(0), linear(1)}};
-
-	return std::pair<std::array<double, 3>, std::array<double, 2>>(quadRet, linearRet);
+	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> quadratic = 
+		yzMatrix.colPivHouseholderQr().solve(zVec);
+	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> linear = 
+		xyMatrix.colPivHouseholderQr().solve(xVec);
+		
+	return std::pair<std::array<double, 3>, std::array<double, 2>>(
+		{{quadratic(0), quadratic(1), quadratic(2)}}, 
+		{{linear(0), linear(1)}});
 }

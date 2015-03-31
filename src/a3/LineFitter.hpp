@@ -17,7 +17,8 @@
  * first array is the coefficients a + b*z + c*z*z in (a, b, c) form
  * second array is the coefficients a + b*x in (a, b) form
  */
-std::pair<std::array<double, 3>, std::array<double, 2>> fitCurve(const std::vector<std::array<double, 3>>& pts);
+std::pair<std::array<double, 3>, std::array<double, 2>> 
+fitCurve(const std::vector<std::array<double, 3>>& pts);
 
 
 #endif /* LINE_FITTER_HPP */
