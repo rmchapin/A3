@@ -22,7 +22,8 @@ SOLNS_PATH   := $(ROOT_PATH)/solns
 CONFIG_DIR   := $(shell pwd)/../../config
 
 CFLAGS_SHARED = -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_REENTRANT \
-		-Wall -Wno-unused-parameter -pthread -fPIC -I$(SRC_PATH)
+		-Wall -Wno-unused-parameter -pthread -fPIC -I$(SRC_PATH) \
+		`pkg-config --cflags eigen3`
 
 CFLAGS_STD   := -std=gnu99 -Wno-format-zero-length $(CFLAGS_SHARED)
 CXXFLAGS_STD := -std=c++0x $(CFLAGS_SHARED)
@@ -95,6 +96,10 @@ LDFLAGS_PNG := `pkg-config --libs libpng`
 # dc1394
 CFLAGS_DC1394 := `pkg-config --cflags libdc1394-2`
 LDFLAGS_DC1394 := `pkg-config --libs libdc1394-2`
+
+# eigen
+CFLAGS_EIGEN := `pkg-config --cflags eigen3`
+LDFLAGS_EIGEN := `pkg-config --libs eigen3`
 
 # Intel Integrated Performance Primitives
 IPPA:=
