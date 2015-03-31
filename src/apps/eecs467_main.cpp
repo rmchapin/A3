@@ -6,6 +6,9 @@
 int main() {
 	Freenect::Freenect freenect;
 	MyFreenectDevice& device = freenect.createDevice<MyFreenectDevice>(0);
+	device.startVideo();
+	device.startDepth();
+	while(1);
 
 	std::vector<std::array<double, 3>> pts;
 	pts.push_back(std::array<double, 3>{{1, 1, 1}});
