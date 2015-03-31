@@ -24,7 +24,9 @@ LDFLAGS = $(LDFLAGS_STD) \
 LIBDEPS = $(call libdeps, $(LDFLAGS))
 
 LIB_A3 = $(LIB_PATH)/liba3.a
-LIB_A3_OBJS = LineFitter.o
+LIB_A3_OBJS = LineFitter.o \
+	CoordinateConverter.o \
+	BlobDetector.o
 
 ALL = $(LIB_A3)
 

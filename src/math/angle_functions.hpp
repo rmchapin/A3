@@ -6,6 +6,15 @@
 namespace eecs467
 {
 
+inline bool angle_between(float min_angle, float max_angle, float current_angle) {
+    if(max_angle >= min_angle) {
+        return (current_angle > min_angle && current_angle < max_angle);
+    } else {
+        return !(current_angle > max_angle && current_angle < min_angle);
+    }
+}
+
+
 /**
 * wrap_to_pi takes an angle of arbitrary size and reduces it to the range [-PI, PI].
 *
