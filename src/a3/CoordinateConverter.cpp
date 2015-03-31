@@ -50,8 +50,8 @@ std::array<float, 3> CoordinateConverter::rgbToHsv(const std::array<uint8_t, 3>&
 	
 	float minimum, maximum, delta;
 
-	minimum = std::min( std::min( frgb[0], frgb[1]), frgb[2] );
-	maximum = std::max( std::max( frgb[0], frgb[1]), frgb[2] );
+	minimum = std::min(std::min(frgb[0], frgb[1]), frgb[2]);
+	maximum = std::max(std::max(frgb[0], frgb[1]), frgb[2]);
 	hsv[2] = maximum;				// v
 
 	delta = maximum - minimum;
@@ -66,14 +66,14 @@ std::array<float, 3> CoordinateConverter::rgbToHsv(const std::array<uint8_t, 3>&
 	}
 
 	if( frgb[0] == maximum )
-		hsv[0] = ( frgb[1] - frgb[2] ) / delta;		// between yellow & magenta
+		hsv[0] = (frgb[1] - frgb[2]) / delta;		// between yellow & magenta
 	else if( frgb[1] == maximum )
-		hsv[0] = 2 + ( frgb[2] - frgb[0] ) / delta;	// between cyan & yellow
+		hsv[0] = 2 + (frgb[2] - frgb[0]) / delta;	// between cyan & yellow
 	else
-		hsv[0] = 4 + ( frgb[0] - frgb[1] ) / delta;	// between magenta & cyan
+		hsv[0] = 4 + (frgb[0] - frgb[1]) / delta;	// between magenta & cyan
 
 	hsv[0] *= 60;				// degrees
-	if( hsv[0] < 0 )
+	if(hsv[0] < 0)
 		hsv[0] += 360;
 	return hsv;
 }

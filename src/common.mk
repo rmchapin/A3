@@ -66,6 +66,10 @@ LDFLAGS_GLIB := `pkg-config --libs glib-2.0 gmodule-2.0 gthread-2.0 gobject-2.0`
 CFLAGS_GSL   := -DHAVE_INLINE `pkg-config --cflags gsl`
 LDFLAGS_GSL   := `pkg-config --libs gsl`
 
+# freenect
+CFLAGS_FREENECT := `pkg-config --cflags libfreenect`
+LDFLAGS_FREENECT := `pkg-config --libs libfreenect`
+
 # jpeg
 ifeq "$(shell test -f /usr/lib/libjpeg-ipp.so -o -f /usr/lib64/libjpeg-ipp.so && echo ipp)" "ipp"
 	LDFLAGS_JPEG := -ljpeg-ipp

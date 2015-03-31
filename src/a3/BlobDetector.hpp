@@ -37,5 +37,4 @@ std::vector<Blob> findBlobs(image_u32_t* im,
 
 }
 
-
 #endif /* BLOB_DETECTOR_HPP */

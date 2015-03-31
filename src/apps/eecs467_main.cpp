@@ -1,8 +1,12 @@
 #include "a3/LineFitter.hpp"
+#include "a3/Freenect.hpp"
 #include <iostream>
 
 
 int main() {
+	Freenect::Freenect freenect;
+	MyFreenectDevice& device = freenect.createDevice<MyFreenectDevice>(0);
+
 	std::vector<std::array<double, 3>> pts;
 	pts.push_back(std::array<double, 3>{{1, 1, 1}});
 	pts.push_back(std::array<double, 3>{{2, 4, 3}});

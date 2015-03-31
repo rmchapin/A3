@@ -6,10 +6,11 @@ COMMON_FLAGS = $(CFLAGS_VX_GTK) \
 	$(CFLAGS_COMMON) \
 	$(CFLAGS_LCMTYPES) \
 	$(CFLAGS_GSL) \
-	$(CFLAGS_EIGEN)
+	$(CFLAGS_EIGEN) \
+	$(CFLAGS_USB)
 
 CFLAGS = $(COMMON_FLAGS) $(CFLAGS_STD) -O3 -DNDEBUG
-CXXFLAGS = $(CXXFLAGS_STD) -O3 -DNDEBUG
+CXXFLAGS = $(COMMON_FLAGS) $(CXXFLAGS_STD) -O3 -DNDEBUG
 
 LDFLAGS = $(LDFLAGS_STD) \
 	$(LDFLAGS_VX_GTK) \
@@ -19,14 +20,17 @@ LDFLAGS = $(LDFLAGS_STD) \
 	$(LDFLAGS_LCMTYPES) \
 	$(LDFLAGS_MAPPING) \
 	$(LDFLAGS_GSL) \
-	$(LDFLAGS_EIGEN)
+	$(LDFLAGS_EIGEN) \
+	$(LDFLAGS_USB)
 
 LIBDEPS = $(call libdeps, $(LDFLAGS))
 
 LIB_A3 = $(LIB_PATH)/liba3.a
 LIB_A3_OBJS = LineFitter.o \
 	CoordinateConverter.o \
-	BlobDetector.o
+	BlobDetector.o \
+	Mutex.o \
+	Freenect.o
 
 ALL = $(LIB_A3)
 
