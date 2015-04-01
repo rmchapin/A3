@@ -8,6 +8,7 @@ private:
 	pthread_mutex_t _mutex;
 public:
 	Mutex();
+	~Mutex();
 	void lock();
 	void unlock();
 };

@@ -2,13 +2,28 @@
 #include "a3/Freenect.hpp"
 #include <iostream>
 
+#include "eecs467_util.h"
 
 int main() {
+	// eecs467_init(0, NULL);
+	// vx_world_t* vxWorld = vx_world_create();
+	// vx_event_handler_t* vxeh = (vx_event_handler_t*) calloc(1, sizeof(vx_event_handler_t));
+	// // vxeh->impl = 
+
+	// vx_application_t vxApp;
+	// vxApp.display_started = eecs467_default_display_started;
+	// vxApp.display_finished = eecs467_default_display_finished;
+	// vxApp.impl = eecs467_default_implementation_create(vxWorld, vxeh);
+
+
 	Freenect::Freenect freenect;
-	MyFreenectDevice& device = freenect.createDevice<MyFreenectDevice>(0);
+	FreenectDevice467& device = freenect.createDevice<FreenectDevice467>(0);
 	device.startVideo();
 	device.startDepth();
-	while(1);
+	
+	while(1) {
+
+	}
 
 	std::vector<std::array<double, 3>> pts;
 	pts.push_back(std::array<double, 3>{{1, 1, 1}});
