@@ -23,7 +23,7 @@ fitCurve(const std::vector<std::array<double, 3>>& pts) {
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> linear = 
 		xyMatrix.colPivHouseholderQr().solve(xVec);
 
-	Eigen::Matrix<double, Eigen::Dynamic, 3> yzMatrix(pts.size(), 3);
+	Eigen::Matrix<double, Eigen::Dynamic, 3> rzMatrix(pts.size(), 3);
 	Eigen::Matrix<double, Eigen::Dynamic, 1> zVec(pts.size(), 1);
 
 	double mag = 1.0 / sqrt(linear(1) * linear(1) + 1);
@@ -34,15 +34,15 @@ fitCurve(const std::vector<std::array<double, 3>>& pts) {
 		double r = (pts[i][0] - linear(0)) * unitDir[0] +
 				pts[i][1] * unitDir[1];
 
-		yzMatrix(i, 0) = 1;
-		yzMatrix(i, 1) = r;
-		yzMatrix(i, 2) = r * r;
+		rzMatrix(i, 0) = 1;
+		rzMatrix(i, 1) = r;
+		rzMatrix(i, 2) = r * r;
 
 		zVec(i) = pts[i][2];
 	}
 
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> quadratic = 
-		yzMatrix.colPivHouseholderQr().solve(zVec);
+		rzMatrix.colPivHouseholderQr().solve(zVec);
 
 	return std::pair<std::array<double, 3>, std::array<double, 2>>(
 		{{quadratic(0), quadratic(1), quadratic(2)}}, 

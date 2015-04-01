@@ -23,5 +23,4 @@
 std::pair<std::array<double, 3>, std::array<double, 2>> 
 fitCurve(const std::vector<std::array<double, 3>>& pts);
 
-
 #endif /* LINE_FITTER_HPP */
