@@ -168,7 +168,7 @@ class state_t
             	{
                 	if (state->u32_im != NULL)
 		            {
-		            	delete state->u32_im;
+		            	image_u32_destroy(state->u32_im);
 		            	state->u32_im = device.getImage();
 		            }
 
