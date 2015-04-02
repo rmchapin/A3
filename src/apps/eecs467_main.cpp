@@ -15,7 +15,6 @@ int main() {
 	// vxApp.display_finished = eecs467_default_display_finished;
 	// vxApp.impl = eecs467_default_implementation_create(vxWorld, vxeh);
 
-
 	// Freenect::Freenect freenect;
 	// FreenectDevice467& device = freenect.createDevice<FreenectDevice467>(0);
 	// device.startVideo();

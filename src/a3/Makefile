@@ -30,7 +30,9 @@ LIB_A3_OBJS = LineFitter.o \
 	CoordinateConverter.o \
 	BlobDetector.o \
 	Mutex.o \
-	Freenect.o
+	Freenect.o \
+	Arm.o \
+	LcmHandler.o
 
 ALL = $(LIB_A3)
 
