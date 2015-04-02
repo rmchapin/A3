@@ -158,7 +158,7 @@ class state_t
         static void* render_loop(void* data)
         {
             state_t *state = (state_t*) data;
-            int hz = 60;
+            int hz = 30;
 
             while (state->running)
             {
@@ -193,7 +193,7 @@ class state_t
 
                 pthread_mutex_unlock(&state->mutex);
 
-                usleep(100000/hz);
+                usleep(1000000/hz);
             }
             
             return NULL;
