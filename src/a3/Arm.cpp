@@ -1,11 +1,10 @@
 #include "Arm.hpp"
+#include "ArmConstants.hpp"
 #include "LcmHandler.hpp"
 #include "math/angle_functions.hpp"
 #include <cmath>
 
 Arm* Arm::_instance = new Arm();
-
-static const float errorThresh = 0.1;
 
 Arm::Arm() {}
 
@@ -33,7 +32,7 @@ void Arm::update(const dynamixel_status_list_t* list) {
 			currCommand.commands[i].position_radians));
 		error += diff;
 	}
-	if (error < errorThresh) {
+	if (error < armErrorThresh) {
 		_commands.pop_front();
 	}
 
