@@ -15,14 +15,15 @@ int main() {
 	// vxApp.display_finished = eecs467_default_display_finished;
 	// vxApp.impl = eecs467_default_implementation_create(vxWorld, vxeh);
 
-	// Freenect::Freenect freenect;
-	// FreenectDevice467& device = freenect.createDevice<FreenectDevice467>(0);
-	// device.startVideo();
-	// device.startDepth();
+	Freenect::Freenect freenect;
+	FreenectDevice467& device = freenect.createDevice<FreenectDevice467>(0);
+	device.startVideo();
+	device.startDepth();
+	device.getImage();
 	
-	// while(1) {
+	while(1) {
 
-	// }
+	}
 
 	std::vector<std::array<double, 3>> pts;
 	pts.push_back(std::array<double, 3>{{2, 1, 1}});
@@ -34,4 +35,9 @@ int main() {
 	auto i = LineFitter::fitCurve(pts);	
 	std::cout << i.first[0]  << '\t' << i.first[1] << '\t' << i.first[2] << '\n';
 	std::cout << i.second[0] << '\t' << i.second[1] << '\n';
+
+	std::array<double, 2> intersection;
+	LineFitter::getIntersectionZ(0, intersection, i);
+	std::cout << "intersection: " << intersection[0] << '\t' 
+		<< intersection[1] << '\n';
 }
