@@ -5,6 +5,8 @@
 #include <array>
 #include <utility>
 
+namespace LineFitter {
+
 /**
  * @brief fits a curve to a set of 3d points
  * @details This will fit a line on the xy plane (ground plane)
@@ -22,5 +24,24 @@
  */
 std::pair<std::array<double, 3>, std::array<double, 2>> 
 fitCurve(const std::vector<std::array<double, 3>>& pts);
+
+/**
+ * @brief calculates the intersection between a curve and the plane
+ * z = zVal
+ * obtains xy point at which that happens
+ * @details this will only calculate the point
+ * with the smallest radius
+ * 
+ * @param zVal the value that z will intersect
+ * @param intersection (x, y) coordinates to be populated by function
+ * @param curve the curve used to calculate the intersections
+ * 
+ * @return true if intersection exists
+ */
+bool getIntersectionZ(double zVal,
+	std::array<double, 2>& intersection,
+	const std::pair<std::array<double, 3>, std::array<double, 2>> & curve);
+
+}
 
 #endif /* LINE_FITTER_HPP */

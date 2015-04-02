@@ -32,7 +32,7 @@ int main() {
 	pts.push_back(std::array<double, 3>{{5, 7, 6}});
 	pts.push_back(std::array<double, 3>{{6, 10, 6.2}});
 
-	auto i = fitCurve(pts);	
+	auto i = LineFitter::fitCurve(pts);	
 	std::cout << i.first[0]  << '\t' << i.first[1] << '\t' << i.first[2] << '\n';
 	std::cout << i.second[0] << '\t' << i.second[1] << '\n';
 }
