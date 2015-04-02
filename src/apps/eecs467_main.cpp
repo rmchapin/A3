@@ -21,9 +21,9 @@ int main() {
 	device.startDepth();
 	device.getImage();
 	
-	// while(1) {
+	while(1) {
 
-	// }
+	}
 
 	std::vector<std::array<double, 3>> pts;
 	pts.push_back(std::array<double, 3>{{2, 1, 1}});

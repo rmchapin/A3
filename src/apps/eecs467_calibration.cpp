@@ -129,6 +129,8 @@ class state_t
 			device.startVideo();
 			device.startDepth();
 
+            u32_im = NULL;
+
 			running = true;
 			capture = false;
         }
@@ -159,6 +161,8 @@ class state_t
         {
             state_t *state = (state_t*) data;
             int hz = 30;
+
+            state->u32_im = device.getImage();
 
             while (state->running)
             {
