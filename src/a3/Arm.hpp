@@ -24,6 +24,15 @@ private:
 public:
 	static Arm* instance();
 
+	/**
+	 * @brief gets the location of the center of the hoop
+	 * @details will return junk data if update() has never been called
+	 * @return (x, y) coordinates in meters of center of hoop
+	 */
+	static std::array<float, 2> forwardKinematics();
+
+	static std::array<float, 3> inverseKinematics(const std::array<float, 2>& coords);
+
 	void update(const dynamixel_status_list_t* list);
 
 	void addCommandLists(const std::vector<dynamixel_command_list_t>& commands);

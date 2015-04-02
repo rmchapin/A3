@@ -63,7 +63,7 @@ bool getIntersectionZ(double zVal,
 	//z = a + b * r + c * r^2
 	double descriminant = curve.first[1] * curve.first[1] - 
 		4 * curve.first[2] * (curve.first[0] - zVal);
-	
+
 	if (descriminant < 0) {
 		return false;
 	}

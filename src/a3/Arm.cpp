@@ -12,6 +12,14 @@ Arm* Arm::instance() {
 	return _instance;
 }
 
+std::array<float, 2> Arm::forwardKinematics() {
+	
+}
+
+std::array<float, 3> Arm::inverseKinematics(const std::array<float, 2>& coords) {
+
+}
+
 void Arm::update(const dynamixel_status_list_t* list) {
 	_armMutex.lock();
 	_status = *list;
