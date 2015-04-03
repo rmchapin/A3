@@ -11,7 +11,8 @@ namespace LineFitter {
  * @brief fits a curve to a set of 3d points
  * @details This will fit a line on the xy plane (ground plane)
  * and a parabola on the plane that runs along the line with a normal that has no z value
- * The curve is limited in only bending in the yz plane
+ * The curve is limited in only bending in plane perpendicular 
+ * to z axis and contains the line fitted in the xy plane
  * 
  * @param pts vector of points in 3d space in (x, y, z) format.
  * size should be at least 3

@@ -5,39 +5,18 @@
 #include "eecs467_util.h"
 
 int main() {
-	// eecs467_init(0, NULL);
-	// vx_world_t* vxWorld = vx_world_create();
-	// vx_event_handler_t* vxeh = (vx_event_handler_t*) calloc(1, sizeof(vx_event_handler_t));
-	// // vxeh->impl = 
-
-	// vx_application_t vxApp;
-	// vxApp.display_started = eecs467_default_display_started;
-	// vxApp.display_finished = eecs467_default_display_finished;
-	// vxApp.impl = eecs467_default_implementation_create(vxWorld, vxeh);
-
-	Freenect::Freenect freenect;
-	FreenectDevice467& device = freenect.createDevice<FreenectDevice467>(0);
-	device.startVideo();
-	device.startDepth();
-	device.getImage();
-	
-	while(1) {
-
-	}
-
 	std::vector<std::array<double, 3>> pts;
-	pts.push_back(std::array<double, 3>{{2, 1, 1}});
-	pts.push_back(std::array<double, 3>{{3, 4, 3}});
-	pts.push_back(std::array<double, 3>{{4, 6, 5}});
-	pts.push_back(std::array<double, 3>{{5, 7, 6}});
-	pts.push_back(std::array<double, 3>{{6, 10, 6.2}});
+	pts.push_back(std::array<double, 3>{{1, 2, 1}});
+	pts.push_back(std::array<double, 3>{{2, 3, 2}});
+	pts.push_back(std::array<double, 3>{{3, 4, 1}});
+	pts.push_back(std::array<double, 3>{{4, 6, -1}});
 
 	auto i = LineFitter::fitCurve(pts);	
 	std::cout << i.first[0]  << '\t' << i.first[1] << '\t' << i.first[2] << '\n';
 	std::cout << i.second[0] << '\t' << i.second[1] << '\n';
 
 	std::array<double, 2> intersection;
-	LineFitter::getIntersectionZ(0, intersection, i);
+	LineFitter::getIntersectionZ(1, intersection, i);
 	std::cout << "intersection: " << intersection[0] << '\t' 
 		<< intersection[1] << '\n';
 }

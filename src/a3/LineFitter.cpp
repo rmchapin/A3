@@ -26,7 +26,6 @@ fitCurve(const std::vector<std::array<double, 3>>& pts) {
 	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> linear = 
 		xyMatrix.colPivHouseholderQr().solve(xVec);
 
-
 	// finding parabola constrained in plane
 	Eigen::Matrix<double, Eigen::Dynamic, 3> rzMatrix(pts.size(), 3);
 	Eigen::Matrix<double, Eigen::Dynamic, 1> zVec(pts.size(), 1);
@@ -61,18 +60,20 @@ bool getIntersectionZ(double zVal,
 	const std::pair<std::array<double, 3>, std::array<double, 2>> & curve) {
 
 	//z = a + b * r + c * r^2
-	double descriminant = curve.first[1] * curve.first[1] - 
-		4 * curve.first[2] * (curve.first[0] - zVal);
+	double a = curve.first[2];
+	double b = curve.first[1];
+	double c = curve.first[0] - zVal;
+	double descriminant = b * b - 4 * a * c;
 
 	if (descriminant < 0) {
 		return false;
 	}
 
-	// quadratic formula, we take only the (-b - sqrt(descr)) / (2a) solution
-	double radius = (-curve.first[1] - std::sqrt(descriminant)) /  
-		(2 * (curve.first[0] - zVal));
-
-	double theta = std::atan2(curve.second[1], 1);
+	// quadratic formula, we take the solution that is the smallest
+	double sign = a < 0 ? 1 : -1;
+	double radius = (-b + sign * std::sqrt(descriminant)) / (2 * a);
+	printf("radius: %lf\n", radius);
+	double theta = std::atan2(1, curve.second[1]);
 
 	intersection[0] = radius * std::cos(theta) + curve.second[0];
 	intersection[1] = radius * std::sin(theta);
