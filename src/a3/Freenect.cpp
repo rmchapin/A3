@@ -14,16 +14,16 @@ FreenectDevice467::FreenectDevice467(freenect_context *_ctx, int _index)
 
 // Do not call directly even in child
 void FreenectDevice467::VideoCallback(void* _rgb, uint32_t timestamp) {
-	std::cout << "RGB callback" << std::endl;
+	std::cout << "RGB @" << timestamp << std::endl;
 	_rgbMutex.lock();
 	uint8_t* rgb = static_cast<uint8_t*>(_rgb);
 
-	for (int in = 0; in < 640*480*3; in += 3)
+	for (int in = 0; in < 640*480; in++)
 	{
 		_im->buf[(in/640) * _im->stride + (in%640)] = ((0xFF << 24) |
-										  			  ((rgb[in + 2] & 0xFF) << 16) |
-										  			  ((rgb[in + 1] & 0xFF) << 8) |
-										  			  (rgb[in] & 0xFF));
+										  			  ((rgb[3*in + 2] & 0xFF) << 16) |
+										  			  ((rgb[3*in + 1] & 0xFF) << 8) |
+										  			  (rgb[3*in] & 0xFF));
 	}
 
 	_rgbMutex.unlock();
@@ -31,7 +31,7 @@ void FreenectDevice467::VideoCallback(void* _rgb, uint32_t timestamp) {
 
 // Do not call directly even in child
 void FreenectDevice467::DepthCallback(void* _depth, uint32_t timestamp) {
-	std::cout << "Depth callback" << std::endl;
+	std::cout << "DEPTH @" << timestamp << std::endl;
 	_depthMutex.lock();
 	// m_depth_mutex.lock();
 	// uint16_t* depth = static_cast<uint16_t*>(_depth);
