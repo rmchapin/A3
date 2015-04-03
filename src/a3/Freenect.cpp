@@ -18,14 +18,14 @@ void FreenectDevice467::VideoCallback(void* _rgb, uint32_t timestamp) {
 	_rgbMutex.lock();
 	uint8_t* rgb = static_cast<uint8_t*>(_rgb);
 
-	for (int row = 0; row < _im->height; row++) {
-		for (int col = 0; col < _im->width; col++) {
-			_im->buf[row * _im->stride + col] = (0xFF << 24) |
-				((rgb[row * _im->width + col + 2] & 0xFF) << 16) |
-				((rgb[row * _im->width + col + 1] & 0xFF) << 8) |
-				(rgb[row * _im->width + col] & 0xFF);
-		}
+	for (int in = 0; in < 640*480*3; in += 3)
+	{
+		_im->buf[(in/640) * _im->stride + (in%640)] = ((0xFF << 24) |
+										  			  ((rgb[in + 2] & 0xFF) << 16) |
+										  			  ((rgb[in + 1] & 0xFF) << 8) |
+										  			  (rgb[in] & 0xFF));
 	}
+
 	_rgbMutex.unlock();
 };
 
