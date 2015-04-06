@@ -63,7 +63,7 @@ $(BIN_EECS467_MAIN): eecs467_main.o $(LIBDEPS)
 	@echo "\t$@"
 	@$(CXX) -o $@ $^ $(LDFLAGS)
 
-$(BIN_EECS467_CALIBRATION): eecs467_calibration.o $(LIBDEPS)
+$(BIN_EECS467_CALIBRATION): eecs467_calibration.o $(LIB_EECS467) $(LIBDEPS)
 	@echo "\t$@"
 	@$(CXX) -o $@ $^ $(LDFLAGS)
 

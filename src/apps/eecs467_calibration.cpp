@@ -16,9 +16,13 @@
 #include "vx/vx.h"
 #include "vx/vx_util.h"
 #include "vx/gtk/vx_gtk_display_source.h"
+#include "vx/vx_remote_display_source.h"
 
 // drawables
 #include "vx/vxo_drawables.h"
+
+#include "imagesource/image_u32.h"
+
 
 typedef struct {
     int x;
@@ -113,16 +117,17 @@ class state_t
     public:
         state_t()
         {
-            //GUI init stuff
-            layers = zhash_create(sizeof(vx_display_t*),sizeof(vx_layer_t*), zhash_ptr_hash, zhash_ptr_equals);
-            vxapp.impl= this;
-            vxapp.display_started = display_started;
-            vxapp.display_finished = display_finished;
+            eecs467_init(0, NULL);
             vxworld = vx_world_create();
             vxeh = (vx_event_handler_t*) calloc(1, sizeof(vx_event_handler_t));
-			vxeh->key_event = key_event;
-			vxeh->mouse_event = mouse_event;
-			vxeh->impl = this;
+            vxeh->key_event = key_event;
+            vxeh->mouse_event = mouse_event;
+            vxeh->dispatch_order = 0;
+            vxeh->impl = this;
+
+            vxapp.display_started = eecs467_default_display_started;
+            vxapp.display_finished = eecs467_default_display_finished;
+            vxapp.impl = eecs467_default_implementation_create(vxworld, vxeh);
 
             pthread_mutex_init (&mutex, NULL);
 
@@ -153,7 +158,42 @@ class state_t
 
         static int key_event(vx_event_handler_t *vxeh, vx_layer_t *vl, vx_key_event_t *key)
         {
-        	//state_t *state = (state_t*) vxeh->impl;
+        	state_t *state = (state_t*) vxeh->impl;
+
+            if (key->key_code == VX_KEY_s && key->released)
+            {
+                state->capture = true;
+            }
+
+            if (key->key_code == VX_KEY_DEL && key->released)
+            {
+                state->capture = false;
+            }
+
+            if (key->key_code == VX_KEY_f && key->released)
+            {
+                if (state->capture)
+                {
+                    printf("enter name for image:\n");
+                    char path[100];
+                    char *ret = fgets(path, 100, stdin);
+            
+                    if (ret == path)
+                    {
+                        // replace \n with null character because fgets is terrible
+                        int len = strlen(path);
+                        path[len - 1] = '\0';
+                        strcat(path, ".pnm");
+                        (void) image_u32_write_pnm(state->u32_im, path);
+                        std::cout << "image written to file: " << path << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cout << "you must CAPTURE an image" << std::endl;
+                }
+            }
+
         	return (0);
         }
 
@@ -162,21 +202,13 @@ class state_t
             state_t *state = (state_t*) data;
             int hz = 30;
 
-            state->u32_im = device.getImage();
-
             while (state->running)
             {
-            	pthread_mutex_lock(&state->mutex);
-
-            	//while(state->capture)
+                while(state->capture)
             	{
-                	if (state->u32_im != NULL)
-		            {
-		            	image_u32_destroy(state->u32_im);
-		            	state->u32_im = device.getImage();
-		            }
+                    pthread_mutex_lock(&state->mutex);
 
-		            if (state->u32_im != NULL)
+                    if (state->u32_im != NULL)
 		            {
 		                vx_object_t *vim = vxo_image_from_u32 (state->u32_im,
 		                                                       VXO_IMAGE_FLIPY,
@@ -191,9 +223,34 @@ class state_t
 
 		                vx_buffer_swap (vx_world_get_buffer (state->vxworld, "image"));
 		            }
-            	}
 
-            	//ELSE get from kinect
+                    pthread_mutex_unlock(&state->mutex);
+            	}//while capture
+
+                pthread_mutex_lock(&state->mutex);
+
+                if (state->u32_im != NULL)
+                {
+                    image_u32_destroy(state->u32_im);
+                }
+
+                state->u32_im = device.getImage();
+
+                if (state->u32_im != NULL)
+                {
+                    vx_object_t *vim = vxo_image_from_u32 (state->u32_im,
+                                                           VXO_IMAGE_FLIPY,
+                                                           VX_TEX_MIN_FILTER | VX_TEX_MAG_FILTER);
+
+                    // render the image centered at the origin and at a normalized scale of +/-1 unit in x-dir
+                    const double scale = 2./state->u32_im->width;
+                    vx_buffer_add_back (vx_world_get_buffer (state->vxworld, "image"),
+                                        vxo_chain (vxo_mat_scale3 (scale, scale, 1.0),
+                                                   vxo_mat_translate3 (-state->u32_im->width/2., -state->u32_im->height/2., 0.),
+                                                   vim));
+
+                    vx_buffer_swap (vx_world_get_buffer (state->vxworld, "image"));
+                }
 
                 pthread_mutex_unlock(&state->mutex);
 
