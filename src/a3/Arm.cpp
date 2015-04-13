@@ -84,6 +84,7 @@ bool Arm::inverseKinematicsPolar(const std::array<float, 2>& polarCoords,
 			continue;
 		}
 
+		// testing with 1st elbow solution, 1st shoulder solution
 		float sinInner = std::asin(inner);
 		tempThetas[2] = sinInner - alpha;
 
@@ -97,35 +98,15 @@ bool Arm::inverseKinematicsPolar(const std::array<float, 2>& polarCoords,
 		}
 		float theta = std::atan2(y, x);
 		tempThetas[0] = -theta + polarCoords[1];
+		inverseKinematicsHelper(tempThetas,
+			minError, angles, currStatus);
 
-		float error = 0;
-		for (int i = 0; i < 3; ++i) {
-			error += 
-				std::pow(currStatus.statuses[i].position_radians - tempThetas[i], 2);
-		}
+		// test again with 1st elbow solution, 2nd shoulder solution
+		inverseKinematicsHelper(std::array<float, 3>
+			{{theta + polarCoords[1], -tempThetas[1], -tempThetas[2]}},
+			minError, angles, currStatus);
 
-		if (error < minError || minError == -1) {
-			minError = error;
-			angles = tempThetas;
-		}
-
-		// test again with 2nd shoulder solution
-		std::array<float, 3> tempThetas2;
-		tempThetas2[0] = 2*theta - tempThetas[0];
-		tempThetas2[1] = -tempThetas[1];
-		tempThetas2[2] = -tempThetas[2];
-		error = 0;
-		for (int i = 0; i < 3; ++i) {
-			error += 
-				std::fabs(currStatus.statuses[i].position_radians - tempThetas2[i]);
-		}
-
-		if (error < minError || minError == -1) {
-			minError = error;
-			angles = tempThetas2;
-		}
-
-		// testing with 2nd elbow solution
+		// testing with 2nd elbow solution, 1st shoulder solution
 		tempThetas[2] = M_PI - sinInner - alpha;
 		x = armLength1 + 
 			armLength2 * std::cos(tempThetas[1]) + 
@@ -137,36 +118,49 @@ bool Arm::inverseKinematicsPolar(const std::array<float, 2>& polarCoords,
 		}
 		theta = std::atan2(y, x);
 		tempThetas[0] = -theta + polarCoords[1];
-
-		error = 0;
-		for (int i = 0; i < 3; ++i) {
-			error += 
-				std::pow(currStatus.statuses[i].position_radians - tempThetas[i], 2);
-		}
-
-		if (error < minError || minError == -1) {
-			minError = error;
-			angles = tempThetas;
-		}
+		inverseKinematicsHelper(tempThetas,
+			minError, angles, currStatus);
 
 		// test again with 2nd shoulder solution
-		tempThetas2[0] = 2*theta - tempThetas[0];
-		tempThetas2[1] = -tempThetas[1];
-		tempThetas2[2] = -tempThetas[2];
-		error = 0;
-		for (int i = 0; i < 3; ++i) {
-			error += 
-				std::fabs(currStatus.statuses[i].position_radians - tempThetas2[i]);
-		}
-
-		if (error < minError || minError == -1) {
-			minError = error;
-			angles = tempThetas2;
-		}
-		
+		inverseKinematicsHelper(std::array<float, 3>
+			{{theta + polarCoords[1], -tempThetas[1], -tempThetas[2]}},
+			minError, angles, currStatus);
 	}
 
 	return minError != -1;
+}
+
+void Arm::inverseKinematicsHelper(const std::array<float, 3>& thetas, 
+		float& minError,
+		std::array<float, 3>& angles,
+		const dynamixel_status_list_t& currStatus) {
+
+	// checking for angle bounds
+	if (thetas[0] < armAngleThresh1[0] || 
+		thetas[0] > armAngleThresh1[1]) {
+		return;
+	}
+	if (thetas[1] < armAngleThresh2[0] || 
+		thetas[1] > armAngleThresh2[1]) {
+		return;
+	}
+	if (thetas[2] < armAngleThresh3[0] || 
+		thetas[2] > armAngleThresh3[1]) {
+		return;
+	}
+
+	// calculating error
+	int error = 0;
+	for (int i = 0; i < 3; ++i) {
+		error += 
+			armWeights[i] * std::pow(currStatus.statuses[i].position_radians - thetas[i], 2);
+	}
+
+	// if error is minimum update it and the angles
+	if (error < minError || minError == -1) {
+		minError = error;
+		angles = thetas;
+	}
 }
 
 void Arm::update(const dynamixel_status_list_t* list) {
@@ -202,9 +196,36 @@ void Arm::addCommandLists(const std::vector<dynamixel_command_list_t>& commands)
 	_armMutex.unlock();
 }
 
+void Arm::addCommandList(const dynamixel_command_list_t& command) {
+	_armMutex.lock();
+	_commands.push_back(command);
+	_armMutex.unlock();
+}
+
 bool Arm::isMoving() {
 	_armMutex.lock();
 	bool ret = _commands.empty();
 	_armMutex.unlock();
 	return !ret;
+}
+
+dynamixel_status_list_t Arm::getStatus() {
+	_armMutex.lock();
+	dynamixel_status_list_t ret = _status;
+	_armMutex.unlock();
+	return ret;
+}
+
+dynamixel_command_list_t Arm::createCommand(std::array<float, 3> angles, 
+	float torque, float speed) {
+	dynamixel_command_list_t cmdList;
+	for (int i = 0; i < 3; i++) {
+		dynamixel_command_t cmd;
+		cmd.position_radians = angles[i];
+		cmd.speed = speed;
+		cmd.max_torque = torque;
+		cmdList.commands.push_back(cmd);
+	}
+	cmdList.len = cmdList.commands.size();
+	return cmdList;
 }
