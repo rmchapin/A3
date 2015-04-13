@@ -105,7 +105,9 @@ class state_t
         pthread_t animate_thread;
         image_u32_t *u32_im;
         image_u32_t *revert;
+        image_u32_t *depth;
 
+        vx_mouse_event_t    last_mouse_event;
    	    double Hmin, Hmax, Smin, Smax, Vmin, Vmax;
     	pix_coord last_click;
     	pix_coord cp_coords[100];
@@ -129,12 +131,22 @@ class state_t
             vxapp.display_finished = eecs467_default_display_finished;
             vxapp.impl = eecs467_default_implementation_create(vxworld, vxeh);
 
+            cp_index = 0;
+            Hmin = -1.0;
+            Hmax = -1.0;
+            Smin = -1.0;
+            Smax = -1.0;
+            Vmin = -1.0;
+            Vmax = -1.0;
+
             pthread_mutex_init (&mutex, NULL);
 
 			device.startVideo();
 			device.startDepth();
 
             u32_im = NULL;
+            revert = NULL;
+            depth = NULL;
 
 			running = true;
 			capture = false;
@@ -150,10 +162,131 @@ class state_t
             image_u32_destroy(revert);
         }
 
+        static void clear_all(state_t *state)
+        {
+            //zero color picker index
+            state->cp_index = 0;
+            state->Hmin = -1.0;
+            state->Hmax = -1.0;
+            state->Smin = -1.0;
+            state->Smax = -1.0;
+            state->Vmin = -1.0;
+            state->Vmax = -1.0;
+        }
+
+        static void process_cp(state_t *state)
+        {  
+            ABGR_p pixel_abgr;
+            uint32_t val = state->revert->buf[(state->cp_coords[state->cp_index-1].y * state->revert->stride) + state->cp_coords[state->cp_index-1].x];
+            pixel_abgr.a = 0xFF & (val >> 24);
+            pixel_abgr.b = 0xFF & (val >> 16);
+            pixel_abgr.g = 0xFF & (val >> 8);
+            pixel_abgr.r = 0xFF & val;
+              
+            //convert to hsv and update bounds
+            HSV_p pixel_hsv;
+            pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+
+            if (state->Hmin == -1.0)
+            {
+                state->Hmin = state->Hmax = pixel_hsv.h;
+                state->Smin = state->Smax = pixel_hsv.s;
+                state->Vmin = state->Vmax = pixel_hsv.v;
+            }
+            else
+            {
+                if (pixel_hsv.h < state->Hmin)
+                    state->Hmin = pixel_hsv.h;
+                if (pixel_hsv.h > state->Hmax)
+                    state->Hmax = pixel_hsv.h;
+                if (pixel_hsv.s < state->Smin)
+                    state->Smin = pixel_hsv.s;
+                if (pixel_hsv.s > state->Smax)
+                    state->Smax = pixel_hsv.s;
+                if (pixel_hsv.v < state->Vmin)
+                    state->Vmin = pixel_hsv.v;
+                if (pixel_hsv.v > state->Vmax)
+                    state->Vmax = pixel_hsv.v;
+            }
+            
+            printf("Hmin %f, Hmax %f, Smin %f, Smax %f, Vmin %f, Vmax %f\n", state->Hmin, state->Hmax, state->Smin, state->Smax, state->Vmin, state->Vmax);
+            
+            //update image with hsv bounds
+            int p, q;
+            for (p = 0; p < state->revert->height; p++)
+            {
+                for (q = 0; q < state->revert->width; q++)
+                {
+                    //make rgba pixel
+                    ABGR_p pixel_abgr;
+                    uint32_t val = state->revert->buf[state->revert->stride * p + q];
+         
+                    pixel_abgr.a = 0xFF & (val >> 24);
+                    pixel_abgr.b = 0xFF & (val >> 16);
+                    pixel_abgr.g = 0xFF & (val >> 8);
+                    pixel_abgr.r = 0xFF & val;
+
+                    HSV_p pixel_hsv;
+                    pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+
+                    if ((pixel_hsv.h >= state->Hmin) && 
+                        (pixel_hsv.h <= state->Hmax) &&
+                        (pixel_hsv.s >= state->Smin) &&
+                        (pixel_hsv.s <= state->Smax) &&
+                        (pixel_hsv.v >= state->Vmin) &&
+                        (pixel_hsv.v <= state->Vmax))
+                    {
+                        state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
+                    }
+                }
+            }
+        }
+
         static int mouse_event(vx_event_handler_t *vxeh, vx_layer_t *vl, vx_camera_pos_t *pos, vx_mouse_event_t *mouse)
         {
-        	//state_t *state = (state_t*) vxeh->impl;
-        	return (0);
+            state_t *state = (state_t*) vxeh->impl;
+
+            // vx_camera_pos_t contains camera location, field of view, etc
+            // vx_mouse_event_t contains scroll, x/y, and button click events
+
+            if ((mouse->button_mask & VX_BUTTON1_MASK) &&
+                !(state->last_mouse_event.button_mask & VX_BUTTON1_MASK))
+            {       
+                if (state->capture)
+                {
+                    vx_ray3_t ray;
+                    vx_camera_pos_compute_ray (pos, mouse->x, mouse->y, &ray);
+
+                    double ground[3];
+                    vx_ray3_intersect_xy (&ray, 0, ground);
+
+                    state->last_click.x = (int) ((ground[0] + 1.0f) * 0.5f * state->revert->width);
+                    state->last_click.y = (int) ((((float)(state->revert->height)/(float)(state->revert->width)) - ground[1])* 0.5f * (float)(state->revert->width));
+                    printf("click registered at pix_coord: %d, %d\n", state->last_click.x, state->last_click.y);
+
+                    if (state->cp_index < 100)
+                    {
+                        if ((state->last_click.x >= 0) && (state->last_click.x < state->revert->width) &&
+                            (state->last_click.y >=0) && (state->last_click.y < state->revert->height))
+                        {
+                                printf("point added to cp_coords\n");
+                                state->cp_coords[state->cp_index] = state->last_click;
+                                state->cp_index++;
+                                process_cp(state);
+                        }
+                    }
+
+                }
+                else
+                {
+                    std::cout << "you must CAPTURE an image" << std::endl;
+                }
+            }
+  
+            // store previous mouse event to see if the user *just* clicked or released
+            state->last_mouse_event = *mouse;
+
+            return 0;
         }
 
         static int key_event(vx_event_handler_t *vxeh, vx_layer_t *vl, vx_key_event_t *key)
@@ -167,26 +300,40 @@ class state_t
 
             if (key->key_code == VX_KEY_DEL && key->released)
             {
+                state->clear_all(state);
                 state->capture = false;
             }
 
             if (key->key_code == VX_KEY_f && key->released)
             {
-                if (state->capture)
+                if (state->cp_index > 1)
                 {
-                    printf("enter name for image:\n");
+                    //write to file
+                    printf("enter name for color range:\n");
                     char path[100];
                     char *ret = fgets(path, 100, stdin);
-            
                     if (ret == path)
                     {
-                        // replace \n with null character because fgets is terrible
                         int len = strlen(path);
-                        path[len - 1] = '\0';
-                        strcat(path, ".pnm");
-                        (void) image_u32_write_pnm(state->u32_im, path);
-                        std::cout << "image written to file: " << path << std::endl;
+                        path[len - 1] = '\0'; // replace \n with null character because fgets is terrible
+                        strcat(path, ".txt");
                     }
+
+                    FILE *fp;
+                    fp = fopen(path, "w");
+                    fprintf(fp, "%f %f %f %f %f %f\n", state->Hmin, state->Hmax, state->Smin, state->Smax, state->Vmin, state->Vmax);
+                    fclose(fp);
+                    printf("color range written to file\n");
+                }
+            }
+
+            if (key->key_code == VX_KEY_p && key->released)
+            {
+                if (state->capture)
+                {
+                    (void) image_u32_write_pnm(state->u32_im, "rgb.pnm");
+                    (void) image_u32_write_pnm(state->depth, "depth.pnm");
+                    std::cout << "images written to file" << std::endl;
                 }
                 else
                 {
@@ -234,7 +381,19 @@ class state_t
                     image_u32_destroy(state->u32_im);
                 }
 
+                if (state->revert != NULL)
+                {
+                    image_u32_destroy(state->revert);
+                }
+
+                if (state->depth != NULL)
+                {
+                    image_u32_destroy(state->depth);
+                }
+
                 state->u32_im = device.getImage();
+                state->revert = image_u32_copy(state->u32_im);
+                state->depth = device.getDepth();
 
                 if (state->u32_im != NULL)
                 {
@@ -281,13 +440,11 @@ class state_t
             zhash_put(state->layers, &disp, &layer, NULL, NULL);
             pthread_mutex_unlock(&state->mutex);
         }
-
-
 };
 
 int main(int argc, char ** argv)
 {
-	state_t state;
+    state_t state;
    	pthread_create(&state.animate_thread, NULL, &state_t::render_loop, &state);
 
     gdk_threads_init();

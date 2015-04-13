@@ -17,23 +17,22 @@ public:
 	FreenectDevice467(freenect_context *_ctx, int _index);
 	
 	// Do not call directly even in child
-	void VideoCallback(void* _rgb, uint32_t timestamp);
+	void VideoCallback(void* _rgb_in, uint32_t timestamp);
 	
 	// Do not call directly even in child
-	void DepthCallback(void* _depth, uint32_t timestamp);
+	void DepthCallback(void* _depth_in, uint32_t timestamp);
 	
-	// bool getVideo(Mat& output);
 	image_u32_t* getImage();
-	
-	// bool getDepth(Mat& output);
+	image_u32_t* getDepth();
+
 private:
-	// std::vector<uint8_t> m_buffer_depth;
-	// std::vector<uint8_t> m_buffer_rgb;
-	// std::vector<uint16_t> m_gamma;
 	Mutex _rgbMutex;
 	Mutex _depthMutex;
-	image_u32_t* _im;
-	std::vector<uint16_t> _depthBuffer;
+	bool _new_rgb;
+	bool _new_depth;
+	image_u32_t* _rgb_im;
+	image_u32_t* _depth_im;
+	uint16_t _t_gamma[2048];
 };
 
 #endif /* FREENECT_HPP */
