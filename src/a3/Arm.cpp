@@ -86,7 +86,6 @@ bool Arm::inverseKinematicsPolar(const std::array<float, 2>& polarCoords,
 
 		float sinInner = std::asin(inner);
 		tempThetas[2] = sinInner - alpha;
-		// float tempThetas[2]Alt = M_PI - sinInner - alpha;
 
 		float x = armLength1 + 
 			armLength2 * std::cos(tempThetas[1]) + 
@@ -110,21 +109,61 @@ bool Arm::inverseKinematicsPolar(const std::array<float, 2>& polarCoords,
 			angles = tempThetas;
 		}
 
-		// test again with 2nd solution
-		/*tempThetas[0] = 2*theta - tempThetas[0];
-		tempThetas[1] = -tempThetas[1];
-		tempThetas[2] = -tempThetas[2];
+		// test again with 2nd shoulder solution
+		std::array<float, 3> tempThetas2;
+		tempThetas2[0] = 2*theta - tempThetas[0];
+		tempThetas2[1] = -tempThetas[1];
+		tempThetas2[2] = -tempThetas[2];
 		error = 0;
 		for (int i = 0; i < 3; ++i) {
 			error += 
-				std::fabs(currStatus.statuses[i].position_radians - tempThetas[i]);
+				std::fabs(currStatus.statuses[i].position_radians - tempThetas2[i]);
+		}
+
+		if (error < minError || minError == -1) {
+			minError = error;
+			angles = tempThetas2;
+		}
+
+		// testing with 2nd elbow solution
+		tempThetas[2] = M_PI - sinInner - alpha;
+		x = armLength1 + 
+			armLength2 * std::cos(tempThetas[1]) + 
+			armLength3 * std::cos(tempThetas[1] + tempThetas[2]);
+		y = armLength2 * std::sin(tempThetas[1]) +
+			armLength3 * std::sin(tempThetas[1] + tempThetas[2]);
+		if (x == 0 && y == 0) {
+			continue;
+		}
+		theta = std::atan2(y, x);
+		tempThetas[0] = -theta + polarCoords[1];
+
+		error = 0;
+		for (int i = 0; i < 3; ++i) {
+			error += 
+				std::pow(currStatus.statuses[i].position_radians - tempThetas[i], 2);
 		}
 
 		if (error < minError || minError == -1) {
 			minError = error;
 			angles = tempThetas;
 		}
-		*/
+
+		// test again with 2nd shoulder solution
+		tempThetas2[0] = 2*theta - tempThetas[0];
+		tempThetas2[1] = -tempThetas[1];
+		tempThetas2[2] = -tempThetas[2];
+		error = 0;
+		for (int i = 0; i < 3; ++i) {
+			error += 
+				std::fabs(currStatus.statuses[i].position_radians - tempThetas2[i]);
+		}
+
+		if (error < minError || minError == -1) {
+			minError = error;
+			angles = tempThetas2;
+		}
+		
 	}
 
 	return minError != -1;

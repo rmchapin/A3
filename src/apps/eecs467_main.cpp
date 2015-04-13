@@ -3,6 +3,7 @@
 #include "a3/Arm.hpp"
 #include <iostream>
 #include <stdio.h>
+#include <chrono>
 
 #include "eecs467_util.h"
 
@@ -49,6 +50,7 @@ int main() {
 	float theta = -M_PI/5;
 	std::array<float, 2> polarCoords{{r, theta}};
 	std::array<float, 3> angles;
+
 	if (Arm::inverseKinematicsPolar(polarCoords, statusList, angles)) {
 		printf("Angles: %f, %f, %f\n", angles[0], angles[1], angles[2]);
 	} else {

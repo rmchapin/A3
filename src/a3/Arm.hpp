@@ -79,7 +79,6 @@ public:
 	void addCommandLists(const std::vector<dynamixel_command_list_t>& commands);
 
 	bool isMoving();
-
 };
 
 #endif /* ARM_HPP */
