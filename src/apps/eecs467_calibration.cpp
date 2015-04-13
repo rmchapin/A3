@@ -105,6 +105,7 @@ class state_t
         pthread_t animate_thread;
         image_u32_t *u32_im;
         image_u32_t *revert;
+        image_u32_t *depth;
 
         vx_mouse_event_t    last_mouse_event;
    	    double Hmin, Hmax, Smin, Smax, Vmin, Vmax;
@@ -144,6 +145,8 @@ class state_t
 			device.startDepth();
 
             u32_im = NULL;
+            revert = NULL;
+            depth = NULL;
 
 			running = true;
 			capture = false;
@@ -328,19 +331,9 @@ class state_t
             {
                 if (state->capture)
                 {
-                    printf("enter name for image:\n");
-                    char path[100];
-                    char *ret = fgets(path, 100, stdin);
-            
-                    if (ret == path)
-                    {
-                        // replace \n with null character because fgets is terrible
-                        int len = strlen(path);
-                        path[len - 1] = '\0';
-                        strcat(path, ".pnm");
-                        (void) image_u32_write_pnm(state->u32_im, path);
-                        std::cout << "image written to file: " << path << std::endl;
-                    }
+                    (void) image_u32_write_pnm(state->u32_im, "rgb.pnm");
+                    (void) image_u32_write_pnm(state->depth, "depth.pnm");
+                    std::cout << "images written to file" << std::endl;
                 }
                 else
                 {
@@ -388,8 +381,19 @@ class state_t
                     image_u32_destroy(state->u32_im);
                 }
 
+                if (state->revert != NULL)
+                {
+                    image_u32_destroy(state->revert);
+                }
+
+                if (state->depth != NULL)
+                {
+                    image_u32_destroy(state->depth);
+                }
+
                 state->u32_im = device.getImage();
                 state->revert = image_u32_copy(state->u32_im);
+                state->depth = device.getDepth();
 
                 if (state->u32_im != NULL)
                 {
@@ -436,13 +440,11 @@ class state_t
             zhash_put(state->layers, &disp, &layer, NULL, NULL);
             pthread_mutex_unlock(&state->mutex);
         }
-
-
 };
 
 int main(int argc, char ** argv)
 {
-	state_t state;
+    state_t state;
    	pthread_create(&state.animate_thread, NULL, &state_t::render_loop, &state);
 
     gdk_threads_init();
