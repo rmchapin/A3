@@ -341,6 +341,20 @@ class state_t
                 }
             }
 
+            if (key->key_code == VX_KEY_l && key->released)
+            {
+                //read mask
+                FILE * fptr = fopen("green.txt", "r");
+                if (fptr == NULL)
+                {
+                    printf("green.txt does not exist, or could not be opened\n");
+                    exit(-2);
+                }
+                fscanf(fptr, "%lf %lf %lf %lf %lf %lf", &state->Hmin, &state->Hmax, &state->Smin, &state->Smax, &state->Vmin, &state->Vmax);
+                fclose(fptr);
+                std::cout << "color range read from file" << std::cout;
+            }
+
         	return (0);
         }
 
@@ -392,11 +406,40 @@ class state_t
                 }
 
                 state->u32_im = device.getImage();
+                //state->u32_im = device.getDepth();
                 state->revert = image_u32_copy(state->u32_im);
                 state->depth = device.getDepth();
 
                 if (state->u32_im != NULL)
                 {
+                    for (int p = 0; p < state->revert->height; p++)
+                    {
+                        for (int q = 0; q < state->revert->width; q++)
+                        {
+                            //make rgba pixel
+                            ABGR_p pixel_abgr;
+                            uint32_t val = state->revert->buf[state->revert->stride * p + q];
+                 
+                            pixel_abgr.a = 0xFF & (val >> 24);
+                            pixel_abgr.b = 0xFF & (val >> 16);
+                            pixel_abgr.g = 0xFF & (val >> 8);
+                            pixel_abgr.r = 0xFF & val;
+
+                            HSV_p pixel_hsv;
+                            pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+
+                            if ((pixel_hsv.h >= state->Hmin) && 
+                                (pixel_hsv.h <= state->Hmax) &&
+                                (pixel_hsv.s >= state->Smin) &&
+                                (pixel_hsv.s <= state->Smax) &&
+                                (pixel_hsv.v >= state->Vmin) &&
+                                (pixel_hsv.v <= state->Vmax))
+                            {
+                                state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
+                            }
+                        }
+                    }
+
                     vx_object_t *vim = vxo_image_from_u32 (state->u32_im,
                                                            VXO_IMAGE_FLIPY,
                                                            VX_TEX_MIN_FILTER | VX_TEX_MAG_FILTER);
