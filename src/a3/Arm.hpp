@@ -78,7 +78,21 @@ public:
 
 	void addCommandLists(const std::vector<dynamixel_command_list_t>& commands);
 
+	void addCommandList(const dynamixel_command_list_t& command);
+
 	bool isMoving();
+
+	dynamixel_status_list_t getStatus();
+
+	static dynamixel_command_list_t createCommand(std::array<float, 3> angles, 
+		float torque = armTorque,
+		float speed = armSpeed);
+
+private:
+	static void inverseKinematicsHelper(const std::array<float, 3>& thetas, 
+		float& minError, 
+		std::array<float, 3>& angles,
+		const dynamixel_status_list_t& currStatus);
 };
 
 #endif /* ARM_HPP */
