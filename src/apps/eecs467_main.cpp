@@ -6,61 +6,41 @@
 #include <stdio.h>
 #include <chrono>
 
-#include "eecs467_util.h"
+#include "VxHandler.hpp"
+#include "a3/BallFinder.hpp"
+#include "a3/GlobalState.hpp"
 
 int main() {
-	// dynamixel_status_list_t statusList;
-	// for (int i = 0; i < 3; i++) {
-	// 	dynamixel_status_t status;
-	// 	status.position_radians = 0;
-	// 	statusList.statuses.push_back(status);
-	// }
-	// statusList.len = 3;
+	VxHandler vx(400, 600);
+	vx.launchThreads();
 
-	// float r = 0.15;
-	// float theta = M_PI/5;
-	
+	Freenect::Freenect freenect;
+	FreenectDevice467& device  = freenect.createDevice<FreenectDevice467>(0);
+	device.startDepth();
 
-	// while (1) {
-	// 	std::cout << "r: ";
-	// 	std::cin >> r;
-	// 	std::cout << "theta: ";
-	// 	std::cin >> theta;
-	// 	std::array<float, 2> polarCoords{{r, theta}};
-	// 	std::array<float, 3> angles;
+	image_u32_t* prevDepth = nullptr;
+	// do {
+	// 	prevDepth = device.getDepth();
+	// } while (prevDepth == nullptr);
 
-	// 	if (Arm::inverseKinematicsPolar(polarCoords, statusList, angles)) {
-	// 		printf("Angles: %f, %f, %f\n", angles[0], angles[1], angles[2]);
-	// 	} else {
-	// 		printf("no solution\n");
-	// 	}
-
-	// 	std::array<float, 2> polarSol = Arm::forwardKinematicsPolar(angles);
-
-	// 	printf("target:\t\t%f, %f\n", r, theta);
-	// 	printf("solution:\t%f, %f\n", polarSol[0], polarSol[1]);
-	// }
-
-	LcmHandler::instance()->launchThreads();
-
-	float r, theta;
+	// GlobalState::instance()->setIm(prevDepth);
 	while (1) {
-		std::cout << "r: ";
-		std::cin >> r;
-		std::cout << "theta: ";
-		std::cin >> theta;
-		dynamixel_status_list_t statusList = Arm::instance()->getStatus();
-
-		std::array<float, 3> angles; 
-		if (Arm::inverseKinematicsPolar(
-			std::array<float, 2>{{r, theta}}, 
-			statusList, angles)) {
-			printf("Angles: %f, %f, %f\n", angles[0], angles[1], angles[2]);
-
-			dynamixel_command_list_t cmdList = Arm::createCommand(angles);
-			Arm::instance()->addCommandList(cmdList);
-		} else {
-			printf("no solution\n");
+		image_u32_t* newDepth = device.getDepth();
+		if (prevDepth == nullptr) {
+			prevDepth = newDepth;
+			continue;
 		}
+		if (prevDepth == nullptr || newDepth == nullptr) {
+			continue;
+		}
+		image_u32_t* diff = BallFinder::imageDiff(prevDepth, newDepth);
+		GlobalState::instance()->setIm(diff);
+
+		image_u32_destroy(prevDepth);
+		prevDepth = newDepth;
+
+		usleep(1e3);
 	}
+
+	return 0;
 }

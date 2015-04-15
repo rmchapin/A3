@@ -59,7 +59,7 @@ $(BIN_EECS467_REXARM_EXAMPLE): rexarm_example.o $(LIBDEPS)
 	@echo "\t$@"
 	@$(CC) -o $@ $^ $(LDFLAGS)
 	
-$(BIN_EECS467_MAIN): eecs467_main.o $(LIBDEPS)
+$(BIN_EECS467_MAIN): eecs467_main.o VxHandler.o eecs467_util.o $(LIBDEPS)
 	@echo "\t$@"
 	@$(CXX) -o $@ $^ $(LDFLAGS)
 

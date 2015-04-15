@@ -17,26 +17,22 @@ std::array<float, 2> CoordinateConverter::cartesianToPolar(const std::array<floa
 	return ret;
 }
 
-std::array<int, 2> CoordinateConverter::screenToImage(const std::array<float, 2>& arr) {
+std::array<int, 2> CoordinateConverter::screenToImage(const std::array<float, 2>& arr, 
+	int imageWidth, int imageHeight) {
 	std::array<int, 2> ret;
 
-	// int imageWidth = CalibrationHandler::instance()->imageWidth();
-	// int imageHeight = CalibrationHandler::instance()->imageHeight();
-
-	// ret[0] = (arr[0] + 0.5) * imageWidth;
-	// ret[1] = imageHeight - ((arr[1] + 0.5 * ((float)imageHeight / imageWidth)) * imageWidth);
+	ret[0] = (arr[0] + 0.5) * imageWidth;
+	ret[1] = imageHeight - ((arr[1] + 0.5 * ((float)imageHeight / imageWidth)) * imageWidth);
 	return ret;
 }
 
-std::array<float, 2> CoordinateConverter::imageToScreen(const std::array<int, 2>& arr) {
+std::array<float, 2> CoordinateConverter::imageToScreen(const std::array<int, 2>& arr,
+	int imageWidth, int imageHeight) {
 	std::array<float, 2> ret;
 
-	// int imageWidth = CalibrationHandler::instance()->imageWidth();
-	// int imageHeight = CalibrationHandler::instance()->imageHeight();
-
-	// ret[0] = ((float)arr[0] / imageWidth) - 0.5;
-	// ret[1] = ((float)(imageHeight - arr[1]) / imageWidth)
-	// 	- 0.5 * ((float)imageHeight / imageWidth);
+	ret[0] = ((float)arr[0] / imageWidth) - 0.5;
+	ret[1] = ((float)(imageHeight - arr[1]) / imageWidth)
+		- 0.5 * ((float)imageHeight / imageWidth);
 	return ret;
 }
 

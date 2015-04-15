@@ -8,9 +8,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "a2/CalibrationHandler.hpp"
-#include "a2/CalibrationInfo.hpp"
-#include "a2/GlobalState.hpp"
+#include "a3/GlobalState.hpp"
+#include "a3/Mutex.hpp"
 
 #include "vx/vx.h"
 #include "vx/vx_util.h"
@@ -33,17 +32,6 @@
 #include "imagesource/image_source.h"
 #include "imagesource/image_convert.h"
 
-
-struct VxButtonStates {
-	bool colorMask;
-	bool blobDetect;
-	bool moveArm;
-	bool dropBall;
-	bool boardMask;
-};
-
-extern VxButtonStates buttonStates;
-
 // you can really only have one instance of VxHandler
 // it's just in a class because it looks nice
 class VxHandler {
@@ -55,7 +43,6 @@ private:
 
 	vx_mouse_event_t last_mouse_event;
 
-	static pthread_mutex_t renderMutex;
 	pthread_t renderPid;
 	pthread_t mainPid;
 
@@ -63,15 +50,12 @@ private:
 	parameter_listener_t* pgListener;
 
 	int windowWidth, windowHeight;
-	CalibrationInfo info;
 
 public:
 	VxHandler(int width, int height);
 	~VxHandler();
 
 	void launchThreads();
-
-	VxButtonStates getButtonStates();
 
 private:
 	static void* renderThread(void* args);

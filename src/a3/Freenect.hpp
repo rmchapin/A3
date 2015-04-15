@@ -22,7 +22,10 @@ public:
 	// Do not call directly even in child
 	void DepthCallback(void* _depth_in, uint32_t timestamp);
 	
+	// gets copy of image (delete it after use)
 	image_u32_t* getImage();
+
+	// get copy of depth (delete if after use)
 	image_u32_t* getDepth();
 
 private:

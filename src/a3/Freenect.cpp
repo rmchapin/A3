@@ -43,53 +43,57 @@ void FreenectDevice467::DepthCallback(void* _depth, uint32_t timestamp) {
 	_depthMutex.lock();
 	uint16_t* depth = static_cast<uint16_t*>(_depth);
 
-	for (int in = 0; in < 640*480; in++)
-	{
-		int pval = _t_gamma[depth[in]];
-		int lb = pval & 0xff;
-		uint8_t r, g, b;
-		switch (pval>>8)
-		{
-			case 0:
-				r = 255;
-				g = 255-lb;
-				b = 255-lb;
-				break;
-			case 1:
-				r = 255;
-				g = lb;
-				b = 0;
-				break;
-			case 2:
-				r = 255-lb;
-				g = 255;
-				b = 0;
-				break;
-			case 3:
-				r = 0;
-				g = 255;
-				b = lb;
-				break;
-			case 4:
-				r = 0;
-				g = 255-lb;
-				b = 255;
-				break;
-			case 5:
-				r = 0;
-				g = 0;
-				b = 255-lb;
-				break;
-			default:
-				r = 0;
-				g = 0;
-				b = 0;
-				break;
-		}
-
-		_depth_im->buf[(in/640) * _rgb_im->stride + (in%640)] =
-									((0xFF << 24) | (b << 16) | (g << 8) | r);
+	for (int i = 0; i < 640*480; i++) {
+		_depth_im->buf[(i/640) * _depth_im->stride + (i%640)] = 
+			depth[i];
 	}
+	// for (int in = 0; in < 640*480; in++)
+	// {
+	// 	int pval = _t_gamma[depth[in]];
+	// 	int lb = pval & 0xff;
+	// 	uint8_t r, g, b;
+	// 	switch (pval>>8)
+	// 	{
+	// 		case 0:
+	// 			r = 255;
+	// 			g = 255-lb;
+	// 			b = 255-lb;
+	// 			break;
+	// 		case 1:
+	// 			r = 255;
+	// 			g = lb;
+	// 			b = 0;
+	// 			break;
+	// 		case 2:
+	// 			r = 255-lb;
+	// 			g = 255;
+	// 			b = 0;
+	// 			break;
+	// 		case 3:
+	// 			r = 0;
+	// 			g = 255;
+	// 			b = lb;
+	// 			break;
+	// 		case 4:
+	// 			r = 0;
+	// 			g = 255-lb;
+	// 			b = 255;
+	// 			break;
+	// 		case 5:
+	// 			r = 0;
+	// 			g = 0;
+	// 			b = 255-lb;
+	// 			break;
+	// 		default:
+	// 			r = 0;
+	// 			g = 0;
+	// 			b = 0;
+	// 			break;
+	// 	}
+
+	// 	_depth_im->buf[(in/640) * _rgb_im->stride + (in%640)] =
+	// 								((0xFF << 24) | (b << 16) | (g << 8) | r);
+	// }
 
 	_new_depth = true;
 	_depthMutex.unlock();
