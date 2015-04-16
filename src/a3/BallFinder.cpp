@@ -42,7 +42,7 @@ image_u32_t* imageDiff(image_u32_t* prev, image_u32_t* curr) {
 			uint32_t currDepth = curr->buf[curr->stride * row + col];
 			uint32_t prevDepth = prev->buf[prev->stride * row + col];
 
-			int64_t sub = std::abs((int64_t)currDepth - (int64_t)prevDepth);
+			int64_t sub = (int64_t)currDepth - (int64_t)prevDepth;
 			if (sub > threshold && currDepth != 0 
 				&& currDepth < 1000) {
 				// std::cout << currDepth << '\n';
