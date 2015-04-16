@@ -7,7 +7,7 @@
 
 namespace BallFinder {
 
-std::array<float, 3> find(image_u32_t* prev, image_u32_t* curr) {
+bool find(image_u32_t* prev, image_u32_t* curr, std::array<double, 3>& loc) {
 	image_u32_t* diff = imageDiff(prev, curr);
 
 	std::vector<BlobDetector::Blob> blobs = BlobDetector::findBlobs(diff,
@@ -18,12 +18,12 @@ std::array<float, 3> find(image_u32_t* prev, image_u32_t* curr) {
 	image_u32_destroy(diff);
 
 	if (blobs.size() == 0) {
-		return std::array<float, 3>{{-1, -1, -1}};
+		return false;
 	}
 
 	std::sort(blobs.begin(), blobs.end(), 
-		[](BlobDetector::Blob& A, 
-			BlobDetector::Blob& B) {
+		[](const BlobDetector::Blob& A, 
+			const BlobDetector::Blob& B) {
 			return A.size > B.size;
 		});
 
@@ -31,7 +31,7 @@ std::array<float, 3> find(image_u32_t* prev, image_u32_t* curr) {
 	// get depth from curr image of blob
 	// get x, y, stuff
 
-	return std::array<float, 3>{{0, 0, 0}};
+	return true;
 }
 
 image_u32_t* imageDiff(image_u32_t* prev, image_u32_t* curr) {

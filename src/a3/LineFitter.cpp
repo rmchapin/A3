@@ -56,7 +56,7 @@ fitCurve(const std::vector<std::array<double, 3>>& pts) {
 }
 
 bool getIntersectionZ(double zVal,
-	std::array<double, 2>& intersection,
+	std::array<float, 2>& intersection,
 	const std::pair<std::array<double, 3>, std::array<double, 2>> & curve) {
 
 	//z = a + b * r + c * r^2

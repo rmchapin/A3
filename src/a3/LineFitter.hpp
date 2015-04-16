@@ -40,7 +40,7 @@ fitCurve(const std::vector<std::array<double, 3>>& pts);
  * @return true if intersection exists
  */
 bool getIntersectionZ(double zVal,
-	std::array<double, 2>& intersection,
+	std::array<float, 2>& intersection,
 	const std::pair<std::array<double, 3>, std::array<double, 2>> & curve);
 
 }
