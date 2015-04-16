@@ -264,17 +264,19 @@ class state_t
                     state->last_click.y = (int) ((((float)(state->revert->height)/(float)(state->revert->width)) - ground[1])* 0.5f * (float)(state->revert->width));
                     printf("click registered at pix_coord: %d, %d\n", state->last_click.x, state->last_click.y);
 
-                    if (state->cp_index < 100)
-                    {
-                        if ((state->last_click.x >= 0) && (state->last_click.x < state->revert->width) &&
-                            (state->last_click.y >=0) && (state->last_click.y < state->revert->height))
-                        {
-                                printf("point added to cp_coords\n");
-                                state->cp_coords[state->cp_index] = state->last_click;
-                                state->cp_index++;
-                                process_cp(state);
-                        }
-                    }
+
+                    std::cout << "depth: " << state->depth->buf[state->last_click.y * state->depth->stride + state->last_click.x] << std::endl;
+                    // if (state->cp_index < 100)
+                    // {
+                    //     if ((state->last_click.x >= 0) && (state->last_click.x < state->revert->width) &&
+                    //         (state->last_click.y >=0) && (state->last_click.y < state->revert->height))
+                    //     {
+                    //             printf("point added to cp_coords\n");
+                    //             state->cp_coords[state->cp_index] = state->last_click;
+                    //             state->cp_index++;
+                    //             process_cp(state);
+                    //     }
+                    // }
 
                 }
                 else
@@ -406,39 +408,38 @@ class state_t
                 }
 
                 state->u32_im = device.getImage();
-                //state->u32_im = device.getDepth();
                 state->revert = image_u32_copy(state->u32_im);
                 state->depth = device.getDepth();
 
                 if (state->u32_im != NULL)
                 {
-                    for (int p = 0; p < state->revert->height; p++)
-                    {
-                        for (int q = 0; q < state->revert->width; q++)
-                        {
-                            //make rgba pixel
-                            ABGR_p pixel_abgr;
-                            uint32_t val = state->revert->buf[state->revert->stride * p + q];
+                    // for (int p = 0; p < state->revert->height; p++)
+                    // {
+                    //     for (int q = 0; q < state->revert->width; q++)
+                    //     {
+                    //         //make rgba pixel
+                    //         ABGR_p pixel_abgr;
+                    //         uint32_t val = state->revert->buf[state->revert->stride * p + q];
                  
-                            pixel_abgr.a = 0xFF & (val >> 24);
-                            pixel_abgr.b = 0xFF & (val >> 16);
-                            pixel_abgr.g = 0xFF & (val >> 8);
-                            pixel_abgr.r = 0xFF & val;
+                    //         pixel_abgr.a = 0xFF & (val >> 24);
+                    //         pixel_abgr.b = 0xFF & (val >> 16);
+                    //         pixel_abgr.g = 0xFF & (val >> 8);
+                    //         pixel_abgr.r = 0xFF & val;
 
-                            HSV_p pixel_hsv;
-                            pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+                    //         HSV_p pixel_hsv;
+                    //         pixel_hsv = u32_pix_to_HSV(pixel_abgr);
 
-                            if ((pixel_hsv.h >= state->Hmin) && 
-                                (pixel_hsv.h <= state->Hmax) &&
-                                (pixel_hsv.s >= state->Smin) &&
-                                (pixel_hsv.s <= state->Smax) &&
-                                (pixel_hsv.v >= state->Vmin) &&
-                                (pixel_hsv.v <= state->Vmax))
-                            {
-                                state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
-                            }
-                        }
-                    }
+                    //         if ((pixel_hsv.h >= state->Hmin) && 
+                    //             (pixel_hsv.h <= state->Hmax) &&
+                    //             (pixel_hsv.s >= state->Smin) &&
+                    //             (pixel_hsv.s <= state->Smax) &&
+                    //             (pixel_hsv.v >= state->Vmin) &&
+                    //             (pixel_hsv.v <= state->Vmax))
+                    //         {
+                    //             state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
+                    //         }
+                    //     }
+                    // }
 
                     vx_object_t *vim = vxo_image_from_u32 (state->u32_im,
                                                            VXO_IMAGE_FLIPY,
