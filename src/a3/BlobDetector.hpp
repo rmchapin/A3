@@ -35,6 +35,9 @@ struct Blob {
 std::vector<Blob> findBlobs(image_u32_t* im, 
 	const std::array<float, 6>& hsvThresh, size_t minPixels);
 
+std::vector<Blob> findBlobs(image_u32_t* im,
+	bool (*fn)(uint32_t), size_t minPixels);
+
 }
 
 #endif /* BLOB_DETECTOR_HPP */

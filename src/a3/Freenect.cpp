@@ -27,9 +27,9 @@ void FreenectDevice467::VideoCallback(void* _rgb, uint32_t timestamp) {
 	for (int in = 0; in < 640*480; in++)
 	{
 		_rgb_im->buf[(in/640) * _rgb_im->stride + (in%640)] = ((0xFF << 24) |
-												  			  ((rgb[3*in + 2] & 0xFF) << 16) |
-												  			  ((rgb[3*in + 1] & 0xFF) << 8) |
-												  			  (rgb[3*in] & 0xFF));
+			((rgb[3*in + 2] & 0xFF) << 16) |
+			((rgb[3*in + 1] & 0xFF) << 8) |
+			(rgb[3*in] & 0xFF));
 	}
 
 	_new_rgb = true;

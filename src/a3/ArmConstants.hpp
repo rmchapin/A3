@@ -11,7 +11,7 @@ static const float armLength1 = 0.1; // meters
 static const float armLength2 = 0.1; // meters
 static const float armLength3 = 0.07; // meters
 
-static const std::array<float, 3> armWeights{{1, 0.5, 0.25}};
+static const std::array<float, 3> armWeights{{1, 1, 1}};
 
 static const std::array<float, 2> armAngleThresh1{{-2.2, 2.2}};
 static const std::array<float, 2> armAngleThresh2{{-2.2, 2.2}};

@@ -6,7 +6,9 @@
 
 
 namespace BallFinder {
-	
+
+std::array<float, 3> find(image_u32_t* prev, image_u32_t* curr);
+
 image_u32_t* imageDiff(image_u32_t* prev, image_u32_t* curr);
 
 

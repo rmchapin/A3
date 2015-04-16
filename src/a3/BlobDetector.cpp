@@ -25,6 +25,10 @@ findBlobsFromMatrix(Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic>& mat
  */
 Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> 
 imageToMatrix(image_u32_t* im, const std::array<float, 6>& hsvThresh);
+
+Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> 
+imageToMatrix(image_u32_t* im, bool (*fn)(uint32_t));
+
 /**
  * @brief return vector of all (x, y) coordinates related to a blob
  * @details will modify mat
@@ -46,6 +50,14 @@ findBlobs(image_u32_t* im,
 	const std::array<float, 6>& hsvThresh, size_t minPixels) {
 	// turn image into matrix of BlobCells
 	Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> mat = imageToMatrix(im, hsvThresh);
+
+	return findBlobsFromMatrix(mat, minPixels);
+}
+
+std::vector<Blob> findBlobs(image_u32_t* im,
+	bool (*fn)(uint32_t), size_t minPixels) {
+
+	Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> mat = imageToMatrix(im, fn);
 
 	return findBlobsFromMatrix(mat, minPixels);
 }
@@ -83,6 +95,24 @@ imageToMatrix(image_u32_t* im, const std::array<float, 6>& hsvThresh) {
 			if (hsv[0] >= hsvThresh[0] && hsv[0] < hsvThresh[1] &&
 				hsv[1] >= hsvThresh[2] && hsv[1] < hsvThresh[3] &&
 				eecs467::angle_between(hsvThresh[4], hsvThresh[5], hsv[2])) {
+				blobColored = true;
+			}
+			ret(row, col) = {blobColored, false};
+		}
+	}
+
+	return ret;
+}
+
+Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> 
+imageToMatrix(image_u32_t* im, bool (*fn)(uint32_t)) {
+	Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> ret(im->height, im->width);
+
+	for (int row = 0; row < im->width; ++row) {
+		for (int col = 0; col < im->height; ++col) {
+			uint32_t val = im->buf[row * im->stride + col];
+			bool blobColored = false;
+			if (fn(val)) {
 				blobColored = true;
 			}
 			ret(row, col) = {blobColored, false};
