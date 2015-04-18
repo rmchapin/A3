@@ -14,10 +14,10 @@ int main() {
 	VxHandler vx(400, 600);
 	vx.launchThreads();
 
-	Freenect::Freenect freenect;
-	FreenectDevice467& device  = freenect.createDevice<FreenectDevice467>(0);
-	device.startDepth();
-	device.setDepthFormat(FREENECT_DEPTH_MM);
+	Freenect::init();
+	Freenect::startDepthCallback();
+	Freenect::startVideoCallback();
+	Freenect::launchThread();
 
 	image_u32_t* prevDepth = nullptr;
 
@@ -26,32 +26,42 @@ int main() {
 	int emptyThresh = 30;
 	int count = 0;
 	while (1) {
-		image_u32_t* newDepth = device.getDepth();
-		if (prevDepth == nullptr) {
-			prevDepth = newDepth;
-			continue;
-		}
-		if (prevDepth == nullptr || newDepth == nullptr) {
-			continue;
-		}
-		image_u32_t* diff = BallFinder::imageDiff(prevDepth, newDepth);
-		for (int row = 0; row < diff->height; row++) {
-			for (int col = 0; col < diff->width; col++) {
-				diff->buf[diff->stride * row + col] |= 0xFF000000;
-			}
-		}
+		// image_u32_t* im = Freenect::getImage();
+		// if (im == nullptr) {
+		// 	continue;
+		// }
+		// GlobalState::instance()->setIm(im);
 
-		std::array<double, 3> loc;
-		if (BallFinder::find(prevDepth, newDepth, loc)) {
-			for (int i = -3; i < 3; i++) {
-				for (int j = -3; j < 3; j++) {
-					diff->buf[diff->stride * ((int)loc[1] + i) + (int)loc[0] + j] =
-						0xFF00FF00;
-				}
-			}
-		}
+		// image_u32_t* newDepth = Freenect::getDepth();
+		// if (prevDepth == nullptr) {
+		// 	prevDepth = newDepth;
+		// 	continue;
+		// }
+		// if (prevDepth == nullptr || newDepth == nullptr) {
+		// 	continue;
+		// }
+		// image_u32_t* diff = BallFinder::imageDiff(prevDepth, newDepth);
+		// for (int row = 0; row < diff->height; row++) {
+		// 	for (int col = 0; col < diff->width; col++) {
+		// 		diff->buf[diff->stride * row + col] |= 0xFF000000;
+		// 	}
+		// }
 
-		GlobalState::instance()->setIm(diff);
+		// std::array<double, 3> loc;
+		// if (BallFinder::find(prevDepth, newDepth, loc)) {
+		// 	for (int i = -3; i < 3; i++) {
+		// 		for (int j = -3; j < 3; j++) {
+		// 			diff->buf[diff->stride * ((int)loc[1] + i) + (int)loc[0] + j] =
+		// 				0xFF00FF00;
+		// 		}
+		// 	}
+		// }
+
+		// GlobalState::instance()->setIm(diff);
+
+		// image_u32_destroy(prevDepth);
+		// prevDepth = newDepth;
+/////////////////
 
 		// char buf[100];
 		// sprintf(buf, "image%d.pnm", count++);
@@ -74,8 +84,6 @@ int main() {
 
 		// pts.push_back(pt);
 
-		image_u32_destroy(prevDepth);
-		prevDepth = newDepth;
 
 		// auto curve = LineFitter::fitCurve(pts);
 		// std::array<float, 2> intersection;

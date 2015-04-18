@@ -89,8 +89,8 @@ HSV_p u32_pix_to_HSV(ABGR_p u32_in)
     return out;
 }
 
-Freenect::Freenect freenect;
-FreenectDevice467& device  = freenect.createDevice<FreenectDevice467>(0);
+// Freenect::Freenect freenect;
+// FreenectDevice467& device  = freenect.createDevice<FreenectDevice467>(0);
 
 class state_t
 {
@@ -141,8 +141,8 @@ class state_t
 
             pthread_mutex_init (&mutex, NULL);
 
-			device.startVideo();
-			device.startDepth();
+			// device.startVideo();
+			// device.startDepth();
 
             u32_im = NULL;
             revert = NULL;
@@ -407,9 +407,9 @@ class state_t
                     image_u32_destroy(state->depth);
                 }
 
-                state->u32_im = device.getImage();
+                // state->u32_im = device.getImage();
                 state->revert = image_u32_copy(state->u32_im);
-                state->depth = device.getDepth();
+                // state->depth = device.getDepth();
 
                 if (state->u32_im != NULL)
                 {
