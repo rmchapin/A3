@@ -36,6 +36,10 @@ int main() {
 	}
 
 	std::ifstream colorFile("yellow.txt");
+	if (!colorFile.is_open()) {
+		printf("couldn't open color file\n");
+		exit(1);
+	}
 	std::array<float, 6> hsvThresh;
 	for (int i = 0; i < 6; i++) {
 		colorFile >> hsvThresh[i];
@@ -61,7 +65,7 @@ int main() {
 		if (rgbIm != nullptr) {
 			GlobalState::instance()->setIm(rgbIm);
 		}
-		
+
 		// find ball in rgb
 		std::array<float, 6> hsvThresh{{0, 0, 0, 0, 0, 0}};
 		std::vector<BlobDetector::Blob> blobs = 
