@@ -3,6 +3,7 @@
 #include "a3/Arm.hpp"
 #include "a3/LcmHandler.hpp"
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <chrono>
 #include <stdio.h>
@@ -12,9 +13,27 @@
 #include "a3/GlobalState.hpp"
 #include "a3/BlobDetector.hpp"
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+
 int main() {
 	VxHandler vx(400, 600);
 	vx.launchThreads();
+
+	
+	std::ifstream calibFile("calib.txt");
+	if (!calibFile.is_open()) {
+		printf("not open!\n");
+		exit(1);
+	}
+	Eigen::Matrix<double, 4, 4> transform;
+	for (int row = 0; row < 4; row++) {
+		for (int col = 0; col < 4; col++) {
+			calibFile >> transform(row, col);
+			transform(row, col) *= 0.0254; // inches to meters
+		}
+	}
 
 	Freenect::init();
 	Freenect::startDepthCallback();
@@ -69,8 +88,19 @@ int main() {
 		std::array<double, 2> realCoord = Freenect::cameraToWorld(biggest.x, biggest.y, depth);
 
 		// do some manipulation
-		pts.push_back(std::array<double, 3>{{realCoord[0], 
-			depth, realCoord[1]}});
+		Eigen::Matrix<double, 4, 1> pt;
+		pt(0) = realCoord[0];
+		pt(1) = (double) depth;
+		pt(2) = realCoord[1];
+		pt(3) = 1;
+
+		Eigen::Matrix<double, 4, 1> newPt = transform * pt;
+
+		pts.push_back(std::array<double, 3>{{
+			newPt(0), newPt(1), newPt(2)
+			}});
+		// pts.push_back(std::array<double, 3>{{realCoord[0], 
+			// depth, realCoord[1]}});
 		
 
 		if (pts.size() < 3) {
