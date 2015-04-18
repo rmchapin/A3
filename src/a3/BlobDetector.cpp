@@ -29,6 +29,9 @@ imageToMatrix(image_u32_t* im, const std::array<float, 6>& hsvThresh);
 Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> 
 imageToMatrix(image_u32_t* im, bool (*fn)(uint32_t));
 
+bool isCircular(const std::vector<std::array<int, 2>>& points,
+	const std::array<int, 2>& centroid);
+
 /**
  * @brief return vector of all (x, y) coordinates related to a blob
  * @details will modify mat
@@ -75,6 +78,9 @@ findBlobsFromMatrix(Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic>& mat
 					continue;
 				}
 				std::array<int, 2> center = findCentroid(currBlob);
+				if (!isCircular(currBlob, center)) {
+					continue;
+				}
 				ret.push_back({center[0], center[1], (int)currBlob.size()});
 			}
 		}
@@ -164,6 +170,19 @@ std::array<int, 2> findCentroid(std::vector<std::array<int, 2>>& points) {
 	ret[1] /= points.size();
 
 	return ret;
+}
+
+bool isCircular(const std::vector<std::array<int, 2>>& points, 
+	const std::array<int, 2>& centroid) {
+	int xVar = 0;
+	int yVar = 0;
+	for (const auto& point : points) {
+		xVar += (point[0] - centroid[0]) * (point[0] - centroid[0]);
+		yVar += (point[1] - centroid[1]) * (point[1] - centroid[1]);
+	}
+	float ratio = (float) xVar / yVar;
+	// printf("ratio: %f\n", ratio);
+	return std::fabs(ratio - 0.5) < 0.2;
 }
 
 }

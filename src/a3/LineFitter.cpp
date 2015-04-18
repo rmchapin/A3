@@ -72,7 +72,7 @@ bool getIntersectionZ(double zVal,
 	// quadratic formula, we take the solution that is the smallest
 	double sign = a < 0 ? 1 : -1;
 	double radius = (-b + sign * std::sqrt(descriminant)) / (2 * a);
-	printf("radius: %lf\n", radius);
+	// printf("radius: %lf\n", radius);
 	double theta = std::atan2(1, curve.second[1]);
 
 	intersection[0] = radius * std::cos(theta) + curve.second[0];

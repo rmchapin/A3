@@ -93,7 +93,7 @@ int VxHandler::mouse_event(vx_event_handler_t *vxeh, vx_layer_t *vl,
 			CoordinateConverter::screenToImage(screenCoord, im->width, im->height);
 
 		uint16_t depth = im->buf[im->stride * imageCoord[1] + imageCoord[0]];
-		printf("clicked (%d, %d) with depth %d\n", imageCoord[0], imageCoord[1], depth);
+		printf("clicked (%d, %d) with depth %d\n", imageCoord[0], imageCoord[1], depth & 0x00FFFFFF);
 
 		image_u32_destroy(im);
 	}
@@ -116,10 +116,20 @@ int VxHandler::touch_event(vx_event_handler_t *vh, vx_layer_t *vl,
 	return 0; // Does nothing
 }
 
+int count = 0;
 void VxHandler::parameterEventHandler (parameter_listener_t *pl, 
 	parameter_gui_t *pg, const char *name) {
 
 	std::string strName(name);
+	if (strName == "but1") {
+		image_u32_t* cp = GlobalState::instance()->getIm();
+		char buf[100];
+		sprintf(buf, "image%d.pnm", count++);
+		int res = image_u32_write_pnm(cp, buf);
+		if (res) {
+			std::cout << "did not save image successfully\n";
+		}
+	}
 	// if (strName == "but1") {
 	// 	// calibrate mask
 	// 	if (CalibrationHandler::instance()->isIdle()) {

@@ -12,8 +12,9 @@ bool find(image_u32_t* prev, image_u32_t* curr, std::array<double, 3>& loc) {
 
 	std::vector<BlobDetector::Blob> blobs = BlobDetector::findBlobs(diff,
 		[](uint32_t val) {
-			return val != 0;
-		}, 10);
+			int32_t signedVal = (int32_t) val;
+			return signedVal > 0;
+		}, 100);
 
 	image_u32_destroy(diff);
 
@@ -30,23 +31,30 @@ bool find(image_u32_t* prev, image_u32_t* curr, std::array<double, 3>& loc) {
 	BlobDetector::Blob biggest = blobs.front();
 	// get depth from curr image of blob
 	// get x, y, stuff
+	loc[0] = biggest.x;
+	loc[1] = biggest.y;
+	loc[2] = 0;
+	printf("biggest blob: %d\n", biggest.size);
 
 	return true;
 }
 
 image_u32_t* imageDiff(image_u32_t* prev, image_u32_t* curr) {
 	image_u32_t* diff = image_u32_create(prev->width, prev->height);
-	int64_t threshold = 5;
+	int64_t threshold = 30;
 	for (int row = 0; row < prev->height; row++) {
 		for (int col = 0; col < prev->width; col++) {
 			uint32_t currDepth = curr->buf[curr->stride * row + col];
 			uint32_t prevDepth = prev->buf[prev->stride * row + col];
 
-			int64_t sub = (int64_t)currDepth - (int64_t)prevDepth;
+			int64_t sub = std::abs((int64_t)currDepth - (int64_t)prevDepth);
 			if (sub > threshold && currDepth != 0 
-				&& currDepth < 1000) {
+				&& currDepth < 3000) {
 				// std::cout << currDepth << '\n';
-				diff->buf[diff->stride * row + col] = 0xFF00FF00;
+				// diff->buf[diff->stride * row + col] = 0xFF00FF00;
+				diff->buf[diff->stride * row + col] = sub;
+			} else {
+				diff->buf[diff->stride * row + col] = 0;
 			}
 		}
 	}
