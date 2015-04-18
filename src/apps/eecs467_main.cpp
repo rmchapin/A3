@@ -3,12 +3,14 @@
 #include "a3/Arm.hpp"
 #include "a3/LcmHandler.hpp"
 #include <iostream>
-#include <stdio.h>
+#include <algorithm>
 #include <chrono>
+#include <stdio.h>
 
 #include "VxHandler.hpp"
 #include "a3/BallFinder.hpp"
 #include "a3/GlobalState.hpp"
+#include "a3/BlobDetector.hpp"
 
 int main() {
 	VxHandler vx(400, 600);
@@ -19,15 +21,81 @@ int main() {
 	Freenect::startVideoCallback();
 	Freenect::launchThread();
 
-	image_u32_t* prevDepth = nullptr;
-
 	std::vector<std::array<double, 3>> pts;
+	
 	int emptyCount = 0;
-	int emptyThresh = 30;
-	int count = 0;
-	
-	
+	int emptyThresh = 100;
+	image_u32_t* rgbIm = nullptr;
+	image_u32_t* depthIm = nullptr;
 	while (1) {
+		rgbIm = Freenect::getImage();
+		depthIm = Freenect::getImage();
+		if (rgbIm == nullptr || depthIm == nullptr) {
+			continue;
+		}
+
+		// find ball in rgb
+		std::array<float, 6> hsvThresh{{0, 0, 0, 0, 0, 0}};
+		std::vector<BlobDetector::Blob> blobs = 
+			BlobDetector::findBlobs(rgbIm, hsvThresh, 100);
+
+		if (blobs.size() == 0) {
+			image_u32_destroy(rgbIm);
+			image_u32_destroy(depthIm);
+			emptyCount++;
+			if (emptyCount > emptyThresh) {
+				emptyCount = 0;
+				pts.clear();
+			}
+			continue;
+		} else {
+			emptyCount = 0;
+		}
+
+		std::sort(blobs.begin(), blobs.end(),
+			[](const BlobDetector::Blob& A,
+				const BlobDetector::Blob& B) {
+				return A.size > B.size;
+			});
+
+		BlobDetector::Blob biggest = blobs.front();
+		uint16_t depth = depthIm->buf[depthIm->stride * biggest.y + biggest.x];
+
+
+		image_u32_destroy(rgbIm);
+		image_u32_destroy(depthIm);
+
+		// getting real coordinates
+		std::array<double, 2> realCoord = Freenect::cameraToWorld(biggest.x, biggest.y, depth);
+
+		// do some manipulation
+		pts.push_back(std::array<double, 3>{{realCoord[0], 
+			depth, realCoord[1]}});
+		
+
+		if (pts.size() < 3) {
+			continue;
+		}
+
+		// fitting curve and getting intersection
+		auto curve = LineFitter::fitCurve(pts);
+		std::array<float, 2> intersection;
+		if (!LineFitter::getIntersectionZ(0, intersection, curve)) {
+			continue;
+		}
+
+		// try to move arm to place
+		std::array<float, 3> angles;
+		if (!Arm::inverseKinematicsCartesian(intersection,
+			Arm::instance()->getStatus(),
+			angles)) {
+			continue;
+		}
+
+		dynamixel_command_list_t cmd = Arm::createCommand(angles);
+		Arm::instance()->addCommandList(cmd);
+		
+
 		// image_u32_t* im = Freenect::getImage();
 		// if (im == nullptr) {
 		// 	continue;
@@ -63,47 +131,7 @@ int main() {
 
 		// image_u32_destroy(prevDepth);
 		// prevDepth = newDepth;
-/////////////////
 
-		// char buf[100];
-		// sprintf(buf, "image%d.pnm", count++);
-		// int res = image_u32_write_pnm(diff, buf);
-		// if (res) {
-		// 	std::cout << "did not save image successfully\n";
-		// }
-
-
-
-		// std::array<double, 3> pt;
-		// if (!BallFinder::find(prevDepth, newDepth, pt)) {
-		// 	emptyCount++;
-		// 	if (emptyCount > emptyThresh) {
-		// 		emptyCount = 0;
-		// 		pts.clear();
-		// 	}
-		// 	continue;
-		// }
-
-		// pts.push_back(pt);
-
-
-		// auto curve = LineFitter::fitCurve(pts);
-		// std::array<float, 2> intersection;
-		// if (!LineFitter::getIntersectionZ(-1, intersection, curve)) {
-		// 	continue;
-		// }
-
-		// // try to move arm to place
-		// std::array<float, 3> angles;
-		// if (!Arm::inverseKinematicsCartesian(intersection,
-		// 	Arm::instance()->getStatus(),
-		// 	angles)) {
-		// 	continue;
-		// }
-
-		// dynamixel_command_list_t cmd = Arm::createCommand(angles);
-		// Arm::instance()->addCommandList(cmd);
-		
 		usleep(1e3);
 	}
 

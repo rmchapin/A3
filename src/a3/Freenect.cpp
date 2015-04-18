@@ -131,7 +131,4 @@ std::array<double, 2> cameraToWorld(int cx, int cy, int depth) {
 	return std::array<double, 2>{{*wx, *wy}};
 }
 
-
 }
-
-
