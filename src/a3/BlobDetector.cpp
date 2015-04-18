@@ -47,6 +47,9 @@ findAndMarkBlob(Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic>& mat,
  */
 std::array<int, 2> findCentroid(std::vector<std::array<int, 2>>& points);
 
+int findAvgVal(const std::vector<std::array<int, 2>>& points,
+	image_u32_t* im);
+
 
 std::vector<Blob> 
 findBlobs(image_u32_t* im, 
@@ -171,6 +174,17 @@ std::array<int, 2> findCentroid(std::vector<std::array<int, 2>>& points) {
 
 	return ret;
 }
+
+int findAvgVal(const std::vector<std::array<int, 2>>& points,
+	image_u32_t* im) {
+
+	int64_t sum = 0;
+	for (const auto& pt : points) {
+		sum += im->buf[im->stride * pt[1] + pt[0]];
+	}
+	return sum / points.size();
+}
+
 
 bool isCircular(const std::vector<std::array<int, 2>>& points, 
 	const std::array<int, 2>& centroid) {
