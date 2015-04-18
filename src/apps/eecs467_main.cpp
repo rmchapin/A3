@@ -101,6 +101,8 @@ int main() {
 		pt(3) = 1;
 
 		Eigen::Matrix<double, 4, 1> newPt = transform * pt;
+		printf("ball at: (%lf, %lf, %lf)\n", newPt(0),
+			newPt(1), newPt(2));
 
 		pts.push_back(std::array<double, 3>{{
 			newPt(0), newPt(1), newPt(2)
@@ -108,7 +110,6 @@ int main() {
 		// pts.push_back(std::array<double, 3>{{realCoord[0], 
 			// depth, realCoord[1]}});
 		
-
 		if (pts.size() < 3) {
 			continue;
 		}
@@ -117,14 +118,18 @@ int main() {
 		auto curve = LineFitter::fitCurve(pts);
 		std::array<float, 2> intersection;
 		if (!LineFitter::getIntersectionZ(0, intersection, curve)) {
+			printf("unable to get intersection\n");
 			continue;
 		}
+		printf("Move arm to: %f, %f\n", intersection[0], intersection[1]);
+		
 
 		// try to move arm to place
 		std::array<float, 3> angles;
 		if (!Arm::inverseKinematicsCartesian(intersection,
 			Arm::instance()->getStatus(),
 			angles)) {
+			printf("unable to move arm to location\n");
 			continue;
 		}
 
