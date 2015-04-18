@@ -28,11 +28,11 @@ int main() {
 	
 	
 	while (1) {
-		// image_u32_t* im = Freenect::getImage();
-		// if (im == nullptr) {
-		// 	continue;
-		// }
-		// GlobalState::instance()->setIm(im);
+		image_u32_t* im = Freenect::getImage();
+		if (im == nullptr) {
+			continue;
+		}
+		GlobalState::instance()->setIm(im);
 
 		// image_u32_t* newDepth = Freenect::getDepth();
 		// if (prevDepth == nullptr) {

@@ -23,7 +23,6 @@
 
 #include "imagesource/image_u32.h"
 
-
 typedef struct {
     int x;
     int y;
@@ -89,9 +88,6 @@ HSV_p u32_pix_to_HSV(ABGR_p u32_in)
     return out;
 }
 
-// Freenect::Freenect freenect;
-// FreenectDevice467& device  = freenect.createDevice<FreenectDevice467>(0);
-
 class state_t
 {
     public:
@@ -106,6 +102,7 @@ class state_t
         image_u32_t *u32_im;
         image_u32_t *revert;
         image_u32_t *depth;
+        pthread_mutex_t im_mutex;
 
         vx_mouse_event_t    last_mouse_event;
    	    double Hmin, Hmax, Smin, Smax, Vmin, Vmax;
@@ -140,9 +137,12 @@ class state_t
             Vmax = -1.0;
 
             pthread_mutex_init (&mutex, NULL);
+            pthread_mutex_init (&im_mutex, NULL);
 
-			// device.startVideo();
-			// device.startDepth();
+            Freenect::init();
+            Freenect::startDepthCallback();
+            Freenect::startVideoCallback();
+            Freenect::launchThread();
 
             u32_im = NULL;
             revert = NULL;
@@ -158,6 +158,7 @@ class state_t
             assert(zhash_size(layers) == 0);
             zhash_destroy(layers);
             pthread_mutex_destroy(&mutex);
+            pthread_mutex_destroy(&im_mutex);
             image_u32_destroy(u32_im);
             image_u32_destroy(revert);
         }
@@ -176,6 +177,7 @@ class state_t
 
         static void process_cp(state_t *state)
         {  
+            std::cout << "start process" << std::endl;
             ABGR_p pixel_abgr;
             uint32_t val = state->revert->buf[(state->cp_coords[state->cp_index-1].y * state->revert->stride) + state->cp_coords[state->cp_index-1].x];
             pixel_abgr.a = 0xFF & (val >> 24);
@@ -240,6 +242,8 @@ class state_t
                     }
                 }
             }
+                        std::cout << "end process" << std::endl;
+
         }
 
         static int mouse_event(vx_event_handler_t *vxeh, vx_layer_t *vl, vx_camera_pos_t *pos, vx_mouse_event_t *mouse)
@@ -252,6 +256,7 @@ class state_t
             if ((mouse->button_mask & VX_BUTTON1_MASK) &&
                 !(state->last_mouse_event.button_mask & VX_BUTTON1_MASK))
             {       
+                std::cout << "click" << std::endl;
                 if (state->capture)
                 {
                     vx_ray3_t ray;
@@ -260,23 +265,32 @@ class state_t
                     double ground[3];
                     vx_ray3_intersect_xy (&ray, 0, ground);
 
-                    state->last_click.x = (int) ((ground[0] + 1.0f) * 0.5f * state->revert->width);
-                    state->last_click.y = (int) ((((float)(state->revert->height)/(float)(state->revert->width)) - ground[1])* 0.5f * (float)(state->revert->width));
+                    state->last_click.x = (int) ((ground[0] + 1.0f) * 0.5f * state->u32_im->width);
+                    state->last_click.y = (int) ((((float)(state->u32_im->height)/(float)(state->u32_im->width)) - ground[1])* 0.5f * (float)(state->u32_im->width));
                     printf("click registered at pix_coord: %d, %d\n", state->last_click.x, state->last_click.y);
 
 
-                    std::cout << "depth: " << state->depth->buf[state->last_click.y * state->depth->stride + state->last_click.x] << std::endl;
-                    // if (state->cp_index < 100)
+                    // if ((state->last_click.x >= 0) && (state->last_click.x < state->depth->width) &&
+                    //     (state->last_click.y >=0) && (state->last_click.y < state->depth->height))
                     // {
-                    //     if ((state->last_click.x >= 0) && (state->last_click.x < state->revert->width) &&
-                    //         (state->last_click.y >=0) && (state->last_click.y < state->revert->height))
-                    //     {
-                    //             printf("point added to cp_coords\n");
-                    //             state->cp_coords[state->cp_index] = state->last_click;
-                    //             state->cp_index++;
-                    //             process_cp(state);
-                    //     }
+                    //     int ddd = state->depth->buf[state->last_click.y * state->depth->stride + state->last_click.x];
+                    //     std::cout << "depth: " << ddd << std::endl;
+                    //     std::array<double, 2> nect_coords;
+                    //     nect_coords = Freenect::cameraToWorld(state->last_click.x, state->last_click.y, ddd);
+                    //     std::cout << "COORDS -- x: " << nect_coords[0] << " y: " << nect_coords[1] << std::endl;
                     // }
+
+                    if (state->cp_index < 100)
+                    {
+                        if ((state->last_click.x >= 0) && (state->last_click.x < state->revert->width) &&
+                            (state->last_click.y >=0) && (state->last_click.y < state->revert->height))
+                        {
+                                printf("point added to cp_coords\n");
+                                state->cp_coords[state->cp_index] = state->last_click;
+                                state->cp_index++;
+                                process_cp(state);
+                        }
+                    }
 
                 }
                 else
@@ -346,7 +360,7 @@ class state_t
             if (key->key_code == VX_KEY_l && key->released)
             {
                 //read mask
-                FILE * fptr = fopen("green.txt", "r");
+                FILE * fptr = fopen("yellow.txt", "r");
                 if (fptr == NULL)
                 {
                     printf("green.txt does not exist, or could not be opened\n");
@@ -407,9 +421,14 @@ class state_t
                     image_u32_destroy(state->depth);
                 }
 
-                // state->u32_im = device.getImage();
-                state->revert = image_u32_copy(state->u32_im);
-                // state->depth = device.getDepth();
+                state->u32_im = Freenect::getImage();
+                if (state->u32_im != NULL)
+                {
+                    state->revert = image_u32_copy(state->u32_im);
+                }
+                //std::cout << "get depth" << std::endl;
+                state->depth = Freenect::getDepth();
+                //std::cout << "done" << std::endl;
 
                 if (state->u32_im != NULL)
                 {

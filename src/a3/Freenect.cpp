@@ -126,9 +126,9 @@ image_u32_t* getDepth() {
 }
 
 std::array<double, 2> cameraToWorld(int cx, int cy, int depth) {
-	double *wx, *wy;
-	freenect_camera_to_world(_dev, cx, cy, depth, wx, wy);
-	return std::array<double, 2>{{*wx, *wy}};
+	double wx, wy;
+	freenect_camera_to_world(_dev, cx, cy, depth, &wx, &wy);
+	return std::array<double, 2>{{wx, wy}};
 }
 
 
