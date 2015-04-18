@@ -58,14 +58,16 @@ int main() {
 		if (rgbIm == nullptr || depthIm == nullptr) {
 			continue;
 		}
-
+		if (rgbIm != nullptr) {
+			GlobalState::instance()->setIm(rgbIm);
+		}
+		
 		// find ball in rgb
 		std::array<float, 6> hsvThresh{{0, 0, 0, 0, 0, 0}};
 		std::vector<BlobDetector::Blob> blobs = 
 			BlobDetector::findBlobs(rgbIm, hsvThresh, 100);
 
 		if (blobs.size() == 0) {
-			image_u32_destroy(rgbIm);
 			image_u32_destroy(depthIm);
 			emptyCount++;
 			if (emptyCount > emptyThresh) {
@@ -87,7 +89,6 @@ int main() {
 		uint16_t depth = depthIm->buf[depthIm->stride * biggest.y + biggest.x];
 
 
-		image_u32_destroy(rgbIm);
 		image_u32_destroy(depthIm);
 
 		// getting real coordinates
