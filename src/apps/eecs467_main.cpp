@@ -35,6 +35,12 @@ int main() {
 		}
 	}
 
+	std::ifstream colorFile("yellow.txt");
+	std::array<float, 6> hsvThresh;
+	for (int i = 0; i < 6; i++) {
+		colorFile >> hsvThresh[i];
+	}
+
 	Freenect::init();
 	Freenect::startDepthCallback();
 	Freenect::startVideoCallback();
