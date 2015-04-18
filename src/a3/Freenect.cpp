@@ -2,6 +2,9 @@
 #include <cmath>
 #include <pthread.h>
 
+#define DEPTH_X_RES 640
+#define DEPTH_Y_RES 480
+
 namespace Freenect {
 
 static freenect_context* _ctx;
@@ -122,4 +125,13 @@ image_u32_t* getDepth() {
 	return ret;
 }
 
+std::array<double, 2> cameraToWorld(int cx, int cy, int depth) {
+	double *wx, *wy;
+	freenect_camera_to_world(_dev, cx, cy, depth, wx, wy);
+	return std::array<double, 2>{{*wx, *wy}};
 }
+
+
+}
+
+

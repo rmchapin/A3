@@ -1,7 +1,11 @@
 #ifndef FREENECT_HPP
 #define FREENECT_HPP
 
+
 #include "libfreenect.h"
+#include "libfreenect-registration.h"
+// #include "libfreenect/libfreenect.h"
+// #include "libfreenect/libfreenect_registration.h"
 #include "Mutex.hpp"
 
 #include "imagesource/image_source.h"
@@ -11,6 +15,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <utility>
+#include <array>
 
 namespace Freenect {
 
@@ -27,6 +32,8 @@ void startDepthCallback();
 void startVideoCallback();
 
 void launchThread();
+
+std::array<double, 2> cameraToWorld(int cx, int cy, int depth);
 
 }
 

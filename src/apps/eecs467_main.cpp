@@ -25,6 +25,8 @@ int main() {
 	int emptyCount = 0;
 	int emptyThresh = 30;
 	int count = 0;
+	
+	
 	while (1) {
 		// image_u32_t* im = Freenect::getImage();
 		// if (im == nullptr) {
