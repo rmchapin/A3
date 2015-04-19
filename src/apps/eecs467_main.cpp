@@ -16,11 +16,72 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+typedef struct {
+	unsigned char a;
+	unsigned char b;
+	unsigned char g;
+	unsigned char r;
+} ABGR_p;
+
+typedef struct {
+	double h;
+	double s;
+	double v;
+} HSV_p;
+
+HSV_p u32_pix_to_HSV(ABGR_p u32_in)
+{
+	HSV_p out;
+	double min, max, delta;
+
+    //printf("R: %d, G: %d, B: %d\n", u32_in.r, u32_in.g, u32_in.b);
+
+    min = u32_in.r < u32_in.g ? u32_in.r : u32_in.g;
+    min = min  < u32_in.b ? min  : u32_in.b;
+    
+    max = u32_in.r > u32_in.g ? u32_in.r : u32_in.g;
+    max = max  > u32_in.b ? max  : u32_in.b;
+    
+    out.v = max / 255.0;                        // v
+    delta = max - min;
+    if( max > 0.0 )
+    {
+        out.s = (delta / max);                  // s
+    }
+    else
+    {
+        // r = g = b = 0                        // s = 0, v is undefined
+        out.s = 0.0;
+        out.h = NAN;                            // its now undefined
+        return out;
+    }
+    
+    if( u32_in.r >= max )                        // > is bogus, just keeps compilor happy
+    {
+        out.h = ( u32_in.g - u32_in.b ) / delta;        // between yellow & magenta
+    }
+    else
+    {
+        if( u32_in.g >= max )
+            out.h = 2.0 + ( u32_in.b - u32_in.r ) / delta;  // between cyan & yellow
+        else
+            out.h = 4.0 + ( u32_in.r - u32_in.g ) / delta;  // between magenta & cyan
+    }
+    
+    out.h *= 60.0;                              // degrees
+    
+    if( out.h < 0.0 )
+        out.h += 360.0;
+
+    return out;
+}
+
 
 int main() {
 	VxHandler vx(400, 600);
 	vx.launchThreads();
 
+	LcmHandler::instance()->launchThreads();
 	
 	std::ifstream calibFile("calib.txt");
 	if (!calibFile.is_open()) {
@@ -53,26 +114,92 @@ int main() {
 	std::vector<std::array<double, 3>> pts;
 	
 	int emptyCount = 0;
-	int emptyThresh = 100;
+	int emptyThresh = 20;
 	image_u32_t* rgbIm = nullptr;
 	image_u32_t* depthIm = nullptr;
 	while (1) {
-		rgbIm = Freenect::getImage();
-		depthIm = Freenect::getImage();
-		if (rgbIm == nullptr || depthIm == nullptr) {
+		image_u32_t* temp = Freenect::getImage();
+		if (temp != nullptr) {
+			rgbIm = temp;
+			image_u32_t* vxDisp = image_u32_copy(rgbIm);
+
+			for (int t = 0; t < vxDisp->width; t++)
+			{
+				for (int y = 0; y < vxDisp->height; y++)
+				{
+			        //make rgba pixel
+                    ABGR_p pixel_abgr;
+                    uint32_t val = vxDisp->buf[vxDisp->stride * y + t];
+         
+                    pixel_abgr.a = 0xFF & (val >> 24);
+                    pixel_abgr.b = 0xFF & (val >> 16);
+                    pixel_abgr.g = 0xFF & (val >> 8);
+                    pixel_abgr.r = 0xFF & val;
+
+                    HSV_p pixel_hsv;
+                    pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+
+                    if ((pixel_hsv.h >= hsvThresh[0]) && 
+                        (pixel_hsv.h <= hsvThresh[1]) &&
+                        (pixel_hsv.s >= hsvThresh[2]) &&
+                        (pixel_hsv.s <= hsvThresh[3]) &&
+                        (pixel_hsv.v >= hsvThresh[4]) &&
+                        (pixel_hsv.v <= hsvThresh[5]))
+					{
+                        vxDisp->buf[vxDisp->stride * y + t] = 0xFFE600CB;
+                    }
+				}
+			}
+			vx.setImage(vxDisp);
+			image_u32_destroy(vxDisp);
+		}
+
+		//std::cout << "got image" << std::endl;
+
+		temp = Freenect::getDepth();
+		if (temp != nullptr) {
+			if (depthIm != nullptr) {
+				image_u32_destroy(depthIm);
+			}
+			depthIm = temp;
+		}
+
+		//std::cout << "got depth" << std::endl;
+
+
+		// if (rgbIm == nullptr || depthIm == nullptr) {
+		// 	continue;
+		// }
+
+		// if (rgbIm != nullptr)
+		// {
+		// 	image_u32_destroy(rgbIm);
+		// }
+		// rgbIm = Freenect::getImage();
+		// if (rgbIm != nullptr)
+		// {
+		// 	vx.setImage(rgbIm);
+		// }
+
+		// if (depthIm != nullptr)
+		// {
+		// 	image_u32_destroy(depthIm);
+		// }
+		// depthIm = Freenect::getDepth();
+
+		if (rgbIm == nullptr || depthIm == nullptr)
+		{
 			continue;
 		}
-		if (rgbIm != nullptr) {
-			GlobalState::instance()->setIm(rgbIm);
-		}
+		
+		// std::cout << "have both" << std::endl;
 
 		// find ball in rgb
-		std::array<float, 6> hsvThresh{{0, 0, 0, 0, 0, 0}};
 		std::vector<BlobDetector::Blob> blobs = 
-			BlobDetector::findBlobs(rgbIm, hsvThresh, 100);
+			BlobDetector::findBlobs(rgbIm, hsvThresh, 30);
 
 		if (blobs.size() == 0) {
-			image_u32_destroy(depthIm);
+			// printf("no blobs found!\n");
 			emptyCount++;
 			if (emptyCount > emptyThresh) {
 				emptyCount = 0;
@@ -92,15 +219,12 @@ int main() {
 		BlobDetector::Blob biggest = blobs.front();
 		uint16_t depth = depthIm->buf[depthIm->stride * biggest.y + biggest.x];
 
-
-		image_u32_destroy(depthIm);
-
 		// getting real coordinates
 		std::array<double, 2> realCoord = Freenect::cameraToWorld(biggest.x, biggest.y, depth);
 
 		// do some manipulation
 		Eigen::Matrix<double, 4, 1> pt;
-		pt(0) = realCoord[0];
+		pt(0) = -realCoord[0];
 		pt(1) = (double) depth;
 		pt(2) = realCoord[1];
 		pt(3) = 1;
@@ -112,8 +236,6 @@ int main() {
 		pts.push_back(std::array<double, 3>{{
 			newPt(0), newPt(1), newPt(2)
 			}});
-		// pts.push_back(std::array<double, 3>{{realCoord[0], 
-			// depth, realCoord[1]}});
 		
 		if (pts.size() < 3) {
 			continue;
@@ -141,6 +263,17 @@ int main() {
 		dynamixel_command_list_t cmd = Arm::createCommand(angles);
 		Arm::instance()->addCommandList(cmd);
 		
+
+		if (depthIm != nullptr) {
+			image_u32_destroy(depthIm);
+		}
+		depthIm = nullptr;
+		if (rgbIm != nullptr) {
+			image_u32_destroy(rgbIm);
+		}
+		rgbIm = nullptr;
+
+////////////////////
 
 		// image_u32_t* im = Freenect::getImage();
 		// if (im == nullptr) {

@@ -22,7 +22,6 @@ void GlobalState::setIm(image_u32_t* im) {
 	if (_im != nullptr) {
 		image_u32_destroy(_im);
 	}
-	_im = im;
-
+	_im = image_u32_copy(im);
 }
 

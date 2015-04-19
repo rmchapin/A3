@@ -43,6 +43,9 @@ private:
 
 	vx_mouse_event_t last_mouse_event;
 
+	image_u32_t *im_disp;
+
+	Mutex renderMutex;
 	pthread_t renderPid;
 	pthread_t mainPid;
 
@@ -56,6 +59,7 @@ public:
 	~VxHandler();
 
 	void launchThreads();
+	void setImage(image_u32_t* set);
 
 private:
 	static void* renderThread(void* args);

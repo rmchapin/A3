@@ -19,6 +19,8 @@ VxHandler::VxHandler(int width, int height) :
 	vxApp.display_finished = eecs467_default_display_finished;
 	vxApp.impl = eecs467_default_implementation_create(vxWorld, vxeh);
 
+	im_disp = nullptr;
+
 	pg = pg_create();
 	pg_add_buttons(pg,
 		"but1", "Button1",
@@ -39,27 +41,38 @@ void VxHandler::launchThreads() {
 	pthread_create(&mainPid, NULL, &VxHandler::mainThread, this);
 }
 
+void VxHandler::setImage(image_u32_t *set)
+{
+	if (set != nullptr)
+	{
+		renderMutex.lock();
+		if (im_disp != nullptr)
+		{
+			image_u32_destroy(im_disp);
+		}
+		im_disp = image_u32_copy(set);
+		renderMutex.unlock();
+	}
+}
+
 void* VxHandler::renderThread(void* args) {
 	VxHandler* state = (VxHandler*) args;
 
 	while (1) {
-		image_u32_t* im = GlobalState::instance()->getIm();
-		if (im == nullptr) {
-			continue;
+		state->renderMutex.lock();
+		if (state->im_disp != nullptr)
+		{
+			vx_object_t* vim = vxo_chain(
+				vxo_mat_translate3(-0.5, 
+					-0.5 * ((float)state->im_disp->height / state->im_disp->width), 0),
+				vxo_mat_scale(1.0 / state->im_disp->width),
+				vxo_image_from_u32(state->im_disp, VXO_IMAGE_FLIPY, 0));
+			vx_buffer_add_back(vx_world_get_buffer(state->vxWorld, "state"), vim);
+
+			vx_buffer_swap(vx_world_get_buffer(state->vxWorld, "state"));
 		}
-
-		vx_object_t* vim = vxo_chain(
-			vxo_mat_translate3(-0.5, 
-				-0.5 * ((float)im->height / im->width), 0),
-			vxo_mat_scale(1.0 / im->width),
-			vxo_image_from_u32(im, VXO_IMAGE_FLIPY, 0));
-		vx_buffer_add_back(vx_world_get_buffer(state->vxWorld, "state"), vim);
-
-		image_u32_destroy(im);
-
-
-		vx_buffer_swap(vx_world_get_buffer(state->vxWorld, "state"));
-		usleep(1e3);
+		state->renderMutex.unlock();
+		usleep(1000000/40);
 	}
 
 	return NULL;
@@ -81,21 +94,26 @@ int VxHandler::mouse_event(vx_event_handler_t *vxeh, vx_layer_t *vl,
 
 	if ((mouse->button_mask & VX_BUTTON1_MASK) &&
 		!(state->last_mouse_event.button_mask & VX_BUTTON1_MASK)) {
-		vx_ray3_t ray;
-		vx_camera_pos_compute_ray (pos, mouse->x, mouse->y, &ray);
+		
+		if (state->im_disp != nullptr)
+		{
+			vx_ray3_t ray;
+			vx_camera_pos_compute_ray (pos, mouse->x, mouse->y, &ray);
 
-		double ground[3];
-		vx_ray3_intersect_xy (&ray, 0, ground);
+			double ground[3];
+			vx_ray3_intersect_xy (&ray, 0, ground);
+			state->renderMutex.lock();
 
-		std::array<float, 2> screenCoord{{ground[0], ground[1]}};
-		image_u32_t* im = GlobalState::instance()->getIm();
-		std::array<int, 2> imageCoord =
-			CoordinateConverter::screenToImage(screenCoord, im->width, im->height);
+			std::array<float, 2> screenCoord{{ground[0], ground[1]}};
+			//image_u32_t* im = GlobalState::instance()->getIm();
+			std::array<int, 2> imageCoord =
+				CoordinateConverter::screenToImage(screenCoord, state->im_disp->width, state->im_disp->height);
 
-		uint16_t depth = im->buf[im->stride * imageCoord[1] + imageCoord[0]];
-		printf("clicked (%d, %d) with depth %d\n", imageCoord[0], imageCoord[1], depth & 0x00FFFFFF);
+			uint16_t depth = state->im_disp->buf[state->im_disp->stride * imageCoord[1] + imageCoord[0]];
 
-		image_u32_destroy(im);
+			state->renderMutex.unlock();
+			printf("clicked (%d, %d) with depth %d\n", imageCoord[0], imageCoord[1], depth & 0x00FFFFFF);
+		}
 	}
 
 	// store previous mouse event to see if the user *just* clicked or released

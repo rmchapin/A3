@@ -81,22 +81,23 @@ findBlobsFromMatrix(Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic>& mat
 					continue;
 				}
 				std::array<int, 2> center = findCentroid(currBlob);
-				if (!isCircular(currBlob, center)) {
-					continue;
-				}
+				// if (!isCircular(currBlob, center)) {
+				// 	printf("not circular\n");
+				// 	continue;
+				// }
 				ret.push_back({center[0], center[1], (int)currBlob.size()});
 			}
 		}
 	}
+
 	return ret;
 }
 
 Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> 
 imageToMatrix(image_u32_t* im, const std::array<float, 6>& hsvThresh) {
 	Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> ret(im->height, im->width);
-
-	for (int row = 0; row < im->width; ++row) {
-		for (int col = 0; col < im->height; ++col) {
+	for (int row = 0; row < im->height; ++row) {
+		for (int col = 0; col < im->width; ++col) {
 			uint32_t val = im->buf[row * im->stride + col];
 			std::array<uint8_t, 3> rgb = CoordinateConverter::imageValToRgb(val);
 			std::array<float, 3> hsv = CoordinateConverter::rgbToHsv(rgb);
@@ -109,7 +110,6 @@ imageToMatrix(image_u32_t* im, const std::array<float, 6>& hsvThresh) {
 			ret(row, col) = {blobColored, false};
 		}
 	}
-
 	return ret;
 }
 
@@ -117,8 +117,8 @@ Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic>
 imageToMatrix(image_u32_t* im, bool (*fn)(uint32_t)) {
 	Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic> ret(im->height, im->width);
 
-	for (int row = 0; row < im->width; ++row) {
-		for (int col = 0; col < im->height; ++col) {
+	for (int row = 0; row < im->height; ++row) {
+		for (int col = 0; col < im->width; ++col) {
 			uint32_t val = im->buf[row * im->stride + col];
 			bool blobColored = false;
 			if (fn(val)) {
