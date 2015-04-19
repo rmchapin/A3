@@ -243,6 +243,9 @@ int main() {
 
 		// fitting curve and getting intersection
 		auto curve = LineFitter::fitCurve(pts);
+		if (curve.first[1] > 0) {
+			printf("curve going up\n");
+		}
 		std::array<float, 2> intersection;
 		if (!LineFitter::getIntersectionZ(0, intersection, curve)) {
 			printf("unable to get intersection\n");
