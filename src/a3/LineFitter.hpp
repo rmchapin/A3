@@ -26,6 +26,9 @@ namespace LineFitter {
 std::pair<std::array<double, 3>, std::array<double, 2>> 
 fitCurve(const std::vector<std::array<double, 3>>& pts);
 
+std::pair<std::array<double, 3>, std::array<double, 2>> 
+RANSACCurve(const std::vector<std::array<double, 3>>& pts);
+
 /**
  * @brief calculates the intersection between a curve and the plane
  * z = zVal
