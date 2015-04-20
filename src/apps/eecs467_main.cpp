@@ -35,46 +35,46 @@ HSV_p u32_pix_to_HSV(ABGR_p u32_in)
 	HSV_p out;
 	double min, max, delta;
 
-    //printf("R: %d, G: %d, B: %d\n", u32_in.r, u32_in.g, u32_in.b);
+	//printf("R: %d, G: %d, B: %d\n", u32_in.r, u32_in.g, u32_in.b);
 
-    min = u32_in.r < u32_in.g ? u32_in.r : u32_in.g;
-    min = min  < u32_in.b ? min  : u32_in.b;
-    
-    max = u32_in.r > u32_in.g ? u32_in.r : u32_in.g;
-    max = max  > u32_in.b ? max  : u32_in.b;
-    
-    out.v = max / 255.0;                        // v
-    delta = max - min;
-    if( max > 0.0 )
-    {
-        out.s = (delta / max);                  // s
-    }
-    else
-    {
-        // r = g = b = 0                        // s = 0, v is undefined
-        out.s = 0.0;
-        out.h = NAN;                            // its now undefined
-        return out;
-    }
-    
-    if( u32_in.r >= max )                        // > is bogus, just keeps compilor happy
-    {
-        out.h = ( u32_in.g - u32_in.b ) / delta;        // between yellow & magenta
-    }
-    else
-    {
-        if( u32_in.g >= max )
-            out.h = 2.0 + ( u32_in.b - u32_in.r ) / delta;  // between cyan & yellow
-        else
-            out.h = 4.0 + ( u32_in.r - u32_in.g ) / delta;  // between magenta & cyan
-    }
-    
-    out.h *= 60.0;                              // degrees
-    
-    if( out.h < 0.0 )
-        out.h += 360.0;
+	min = u32_in.r < u32_in.g ? u32_in.r : u32_in.g;
+	min = min  < u32_in.b ? min  : u32_in.b;
+	
+	max = u32_in.r > u32_in.g ? u32_in.r : u32_in.g;
+	max = max  > u32_in.b ? max  : u32_in.b;
+	
+	out.v = max / 255.0;                        // v
+	delta = max - min;
+	if( max > 0.0 )
+	{
+		out.s = (delta / max);                  // s
+	}
+	else
+	{
+		// r = g = b = 0                        // s = 0, v is undefined
+		out.s = 0.0;
+		out.h = NAN;                            // its now undefined
+		return out;
+	}
+	
+	if( u32_in.r >= max )                        // > is bogus, just keeps compilor happy
+	{
+		out.h = ( u32_in.g - u32_in.b ) / delta;        // between yellow & magenta
+	}
+	else
+	{
+		if( u32_in.g >= max )
+			out.h = 2.0 + ( u32_in.b - u32_in.r ) / delta;  // between cyan & yellow
+		else
+			out.h = 4.0 + ( u32_in.r - u32_in.g ) / delta;  // between magenta & cyan
+	}
+	
+	out.h *= 60.0;                              // degrees
+	
+	if( out.h < 0.0 )
+		out.h += 360.0;
 
-    return out;
+	return out;
 }
 
 
@@ -116,11 +116,11 @@ int main() {
 	
 	int emptyCount = 0;
 	int emptyThresh = 20;
-	int depthThresh = 1500;
 	image_u32_t* rgbIm = nullptr;
 	image_u32_t* depthIm = nullptr;
 	while (1) {
 		image_u32_t* temp = Freenect::getImage();
+
 		image_u32_t* vxDisp;
 		if (temp != nullptr) {
 			rgbIm = temp;
@@ -130,33 +130,31 @@ int main() {
 			{
 				for (int y = 0; y < vxDisp->height; y++)
 				{
-			        //make rgba pixel
-                    ABGR_p pixel_abgr;
-                    uint32_t val = vxDisp->buf[vxDisp->stride * y + t];
-         
-                    pixel_abgr.a = 0xFF & (val >> 24);
-                    pixel_abgr.b = 0xFF & (val >> 16);
-                    pixel_abgr.g = 0xFF & (val >> 8);
-                    pixel_abgr.r = 0xFF & val;
+					//make rgba pixel
+					ABGR_p pixel_abgr;
+					uint32_t val = vxDisp->buf[vxDisp->stride * y + t];
+		 
+					pixel_abgr.a = 0xFF & (val >> 24);
+					pixel_abgr.b = 0xFF & (val >> 16);
+					pixel_abgr.g = 0xFF & (val >> 8);
+					pixel_abgr.r = 0xFF & val;
 
-                    HSV_p pixel_hsv;
-                    pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+					HSV_p pixel_hsv;
+					pixel_hsv = u32_pix_to_HSV(pixel_abgr);
 
-                    if ((pixel_hsv.h >= hsvThresh[0]) && 
-                        (pixel_hsv.h <= hsvThresh[1]) &&
-                        (pixel_hsv.s >= hsvThresh[2]) &&
-                        (pixel_hsv.s <= hsvThresh[3]) &&
-                        (pixel_hsv.v >= hsvThresh[4]) &&
-                        (pixel_hsv.v <= hsvThresh[5]))
+					if ((pixel_hsv.h >= hsvThresh[0]) && 
+						(pixel_hsv.h <= hsvThresh[1]) &&
+						(pixel_hsv.s >= hsvThresh[2]) &&
+						(pixel_hsv.s <= hsvThresh[3]) &&
+						(pixel_hsv.v >= hsvThresh[4]) &&
+						(pixel_hsv.v <= hsvThresh[5]))
 					{
-                        vxDisp->buf[vxDisp->stride * y + t] = 0xFFE600CB;
-                    }
+						vxDisp->buf[vxDisp->stride * y + t] = 0xFFE600CB;
+					}
 				}
 			}
 			vx.setImage(vxDisp);
 		}
-
-		//std::cout << "got image" << std::endl;
 
 		temp = Freenect::getDepth();
 		if (temp != nullptr) {
@@ -166,49 +164,17 @@ int main() {
 			depthIm = temp;
 		}
 
-		//std::cout << "got depth" << std::endl;
-
-
-		// if (rgbIm == nullptr || depthIm == nullptr) {
-		// 	continue;
-		// }
-
-		// if (rgbIm != nullptr)
-		// {
-		// 	image_u32_destroy(rgbIm);
-		// }
-		// rgbIm = Freenect::getImage();
-		// if (rgbIm != nullptr)
-		// {
-		// 	vx.setImage(rgbIm);
-		// }
-
-		// if (depthIm != nullptr)
-		// {
-		// 	image_u32_destroy(depthIm);
-		// }
-		// depthIm = Freenect::getDepth();
-
 		if (rgbIm == nullptr || depthIm == nullptr)
 		{
 			continue;
 		}
 		
-		// std::cout << "have both" << std::endl;
 
 		// find ball in rgb
 		std::vector<BlobDetector::Blob> blobs = 
 			BlobDetector::findBlobs(rgbIm, hsvThresh, 30);
 
-		static int frame_count = 0;
-
 		if (blobs.size() == 0) {
-			// printf("no blobs found!\n");
-			emptyCount++;
-// char path[50];
-// sprintf(path, "frame_%d_noblob.pnm", frame_count);
-// image_u32_write_pnm(vxDisp, path);
-// frame_count++;
 			if (emptyCount > emptyThresh) {
 				emptyCount = 0;
 				pts.clear();
@@ -217,10 +183,6 @@ int main() {
 			}
 			continue;
 		} else {
-char path[50];
-sprintf(path, "frame_%d_blob.pnm", frame_count);
-// image_u32_write_pnm(vxDisp, path);
-frame_count++;
 			emptyCount = 0;
 		}
 
@@ -232,10 +194,6 @@ frame_count++;
 
 		BlobDetector::Blob biggest = blobs.front();
 		uint16_t depth = depthIm->buf[depthIm->stride * biggest.y + biggest.x];
-
-		if (depth > depthThresh) {
-			continue;
-		}
 
 		// getting real coordinates
 		std::array<double, 2> realCoord = Freenect::cameraToWorld(biggest.x, biggest.y, depth);
@@ -251,57 +209,57 @@ frame_count++;
 		printf("ball at: (%lf, %lf, %lf)\n", newPt(0),
 			newPt(1), newPt(2));
 
-		pts.push_back(std::array<double, 3>{{
-			newPt(0), newPt(1), newPt(2)
-			}});
+		// pts.push_back(std::array<double, 3>{{
+		// 	newPt(0), newPt(1), newPt(2)
+		// 	}});
 		
-		if (pts.size() < 3) {
-			continue;
-		}
-
-		// fitting curve and getting intersection
-		auto curve = LineFitter::RANSACCurve(pts);
-		// if (curve.first[1] > 0) {
-		// 	printf("curve going up\n");
+		// if (pts.size() < 3) {
+		// 	continue;
 		// }
-		printf("linear: %f, %f\n", curve.second[0], curve.second[1]);
-		printf("quad: %f, %f, %f\n", curve.first[0], 
-			curve.first[1], curve.first[2]);
-		std::array<float, 2> intersection;
-		if (!LineFitter::getIntersectionZ(0, intersection, curve)) {
-			printf("unable to get intersection\n");
-			continue;
-		}
-		printf("Move arm to: %f, %f\n", intersection[0], intersection[1]);
-		if (std::isnan(intersection[0]) ||
-			std::isnan(intersection[1])) {
-			continue;
-		}
+
+		// // fitting curve and getting intersection
+		// auto curve = LineFitter::RANSACCurve(pts);
+		// // if (curve.first[1] > 0) {
+		// // 	printf("curve going up\n");
+		// // }
+		// printf("linear: %f, %f\n", curve.second[0], curve.second[1]);
+		// printf("quad: %f, %f, %f\n", curve.first[0], 
+		// 	curve.first[1], curve.first[2]);
+		// std::array<float, 2> intersection;
+		// if (!LineFitter::getIntersectionZ(0, intersection, curve)) {
+		// 	printf("unable to get intersection\n");
+		// 	continue;
+		// }
+		// printf("Move arm to: %f, %f\n", intersection[0], intersection[1]);
+		// if (std::isnan(intersection[0]) ||
+		// 	std::isnan(intersection[1])) {
+		// 	continue;
+		// }
 		
-		float tempX = -intersection[0];
-		intersection[0] = intersection[1];
-		intersection[1] = tempX;
+		// float tempX = -intersection[0];
+		// intersection[0] = intersection[1];
+		// intersection[1] = tempX;
 
 		// try to move arm to place
-		std::array<float, 3> angles;
-		if (!Arm::inverseKinematicsCartesian(intersection,
-			Arm::instance()->getStatus(),
-			angles)) {
-			printf("unable to move arm to location\n");
-			continue;
-		}
+		// std::array<float, 3> angles;
+		// if (!Arm::inverseKinematicsCartesian(intersection,
+		// 	Arm::instance()->getStatus(),
+		// 	angles)) {
+		// 	printf("unable to move arm to location\n");
+		// 	continue;
+		// }
 
-		dynamixel_command_list_t cmd = Arm::createCommand(angles);
-		Arm::instance()->addCommandList(cmd);
+		// dynamixel_command_list_t cmd = Arm::createCommand(angles);
+		// Arm::instance()->addCommandList(cmd);
 
-		if (depthIm != nullptr) {
-			image_u32_destroy(depthIm);
-		}
-		depthIm = nullptr;
-		if (rgbIm != nullptr) {
-			image_u32_destroy(rgbIm);
-		}
-		rgbIm = nullptr;
+		// if (depthIm != nullptr) {
+		// 	image_u32_destroy(depthIm);
+		// }
+		// depthIm = nullptr;
+		// if (rgbIm != nullptr) {
+		// 	image_u32_destroy(rgbIm);
+		// }
+		// rgbIm = nullptr;
 
 ////////////////////
 

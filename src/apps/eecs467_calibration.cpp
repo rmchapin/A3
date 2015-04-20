@@ -257,7 +257,7 @@ class state_t
                 !(state->last_mouse_event.button_mask & VX_BUTTON1_MASK))
             {       
                 //std::cout << "click" << std::endl;
-                //if (state->capture)
+                // if (state->capture)
                 {
                     vx_ray3_t ray;
                     vx_camera_pos_compute_ray (pos, mouse->x, mouse->y, &ray);
@@ -270,8 +270,8 @@ class state_t
                     printf("click registered at pix_coord: %d, %d\n", state->last_click.x, state->last_click.y);
 
 
-                    // if ((state->last_click.x >= 0) && (state->last_click.x < state->depth->width) &&
-                    //     (state->last_click.y >=0) && (state->last_click.y < state->depth->height))
+                    // if ((state->last_click.x >= 0) && (state->last_click.x < state->u32_im->width) &&
+                    //     (state->last_click.y >=0) && (state->last_click.y < state->u32_im->height))
                     // {
                     //     int ddd = state->depth->buf[state->last_click.y * state->depth->stride + state->last_click.x];
                     //     std::cout << "depth: " << ddd << std::endl;
