@@ -168,7 +168,6 @@ int main() {
 		{
 			continue;
 		}
-		
 
 		// find ball in rgb
 		std::vector<BlobDetector::Blob> blobs = 
@@ -201,8 +200,8 @@ int main() {
 		// do some manipulation
 		Eigen::Matrix<double, 4, 1> pt;
 		pt(0) = realCoord[0];
-		pt(1) = (double) depth;
-		pt(2) = realCoord[1];
+		pt(1) = realCoord[1];
+		pt(2) = (double) depth;
 		pt(3) = 1;
 
 		Eigen::Matrix<double, 4, 1> newPt = transform * pt;
