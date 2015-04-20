@@ -192,12 +192,14 @@ void Arm::update(const dynamixel_status_list_t* list) {
 
 void Arm::addCommandLists(const std::vector<dynamixel_command_list_t>& commands) {
 	_armMutex.lock();
+	_commands.clear();
 	_commands.insert(_commands.end(), commands.begin(), commands.end());
 	_armMutex.unlock();
 }
 
 void Arm::addCommandList(const dynamixel_command_list_t& command) {
 	_armMutex.lock();
+	_commands.clear();
 	_commands.push_back(command);
 	_armMutex.unlock();
 }

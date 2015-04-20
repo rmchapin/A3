@@ -214,35 +214,35 @@ class state_t
             printf("Hmin %f, Hmax %f, Smin %f, Smax %f, Vmin %f, Vmax %f\n", state->Hmin, state->Hmax, state->Smin, state->Smax, state->Vmin, state->Vmax);
             
             //update image with hsv bounds
-            int p, q;
-            for (p = 0; p < state->revert->height; p++)
-            {
-                for (q = 0; q < state->revert->width; q++)
-                {
-                    //make rgba pixel
-                    ABGR_p pixel_abgr;
-                    uint32_t val = state->revert->buf[state->revert->stride * p + q];
+            // int p, q;
+            // for (p = 0; p < state->revert->height; p++)
+            // {
+            //     for (q = 0; q < state->revert->width; q++)
+            //     {
+            //         //make rgba pixel
+            //         ABGR_p pixel_abgr;
+            //         uint32_t val = state->revert->buf[state->revert->stride * p + q];
          
-                    pixel_abgr.a = 0xFF & (val >> 24);
-                    pixel_abgr.b = 0xFF & (val >> 16);
-                    pixel_abgr.g = 0xFF & (val >> 8);
-                    pixel_abgr.r = 0xFF & val;
+            //         pixel_abgr.a = 0xFF & (val >> 24);
+            //         pixel_abgr.b = 0xFF & (val >> 16);
+            //         pixel_abgr.g = 0xFF & (val >> 8);
+            //         pixel_abgr.r = 0xFF & val;
 
-                    HSV_p pixel_hsv;
-                    pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+            //         HSV_p pixel_hsv;
+            //         pixel_hsv = u32_pix_to_HSV(pixel_abgr);
 
-                    if ((pixel_hsv.h >= state->Hmin) && 
-                        (pixel_hsv.h <= state->Hmax) &&
-                        (pixel_hsv.s >= state->Smin) &&
-                        (pixel_hsv.s <= state->Smax) &&
-                        (pixel_hsv.v >= state->Vmin) &&
-                        (pixel_hsv.v <= state->Vmax))
-                    {
-                        state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
-                    }
-                }
-            }
-                        std::cout << "end process" << std::endl;
+            //         if ((pixel_hsv.h >= state->Hmin) && 
+            //             (pixel_hsv.h <= state->Hmax) &&
+            //             (pixel_hsv.s >= state->Smin) &&
+            //             (pixel_hsv.s <= state->Smax) &&
+            //             (pixel_hsv.v >= state->Vmin) &&
+            //             (pixel_hsv.v <= state->Vmax))
+            //         {
+            //             state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
+            //         }
+            //     }
+            // }
+                        //std::cout << "end process" << std::endl;
 
         }
 
@@ -256,8 +256,8 @@ class state_t
             if ((mouse->button_mask & VX_BUTTON1_MASK) &&
                 !(state->last_mouse_event.button_mask & VX_BUTTON1_MASK))
             {       
-                std::cout << "click" << std::endl;
-                if (state->capture)
+                //std::cout << "click" << std::endl;
+                //if (state->capture)
                 {
                     vx_ray3_t ray;
                     vx_camera_pos_compute_ray (pos, mouse->x, mouse->y, &ray);
@@ -293,10 +293,10 @@ class state_t
                     }
 
                 }
-                else
-                {
-                    std::cout << "you must CAPTURE an image" << std::endl;
-                }
+                // else
+                // {
+                //     std::cout << "you must CAPTURE an image" << std::endl;
+                // }
             }
   
             // store previous mouse event to see if the user *just* clicked or released
@@ -432,33 +432,33 @@ class state_t
 
                 if (state->u32_im != NULL)
                 {
-                    // for (int p = 0; p < state->revert->height; p++)
-                    // {
-                    //     for (int q = 0; q < state->revert->width; q++)
-                    //     {
-                    //         //make rgba pixel
-                    //         ABGR_p pixel_abgr;
-                    //         uint32_t val = state->revert->buf[state->revert->stride * p + q];
+                    for (int p = 0; p < state->revert->height; p++)
+                    {
+                        for (int q = 0; q < state->revert->width; q++)
+                        {
+                            //make rgba pixel
+                            ABGR_p pixel_abgr;
+                            uint32_t val = state->revert->buf[state->revert->stride * p + q];
                  
-                    //         pixel_abgr.a = 0xFF & (val >> 24);
-                    //         pixel_abgr.b = 0xFF & (val >> 16);
-                    //         pixel_abgr.g = 0xFF & (val >> 8);
-                    //         pixel_abgr.r = 0xFF & val;
+                            pixel_abgr.a = 0xFF & (val >> 24);
+                            pixel_abgr.b = 0xFF & (val >> 16);
+                            pixel_abgr.g = 0xFF & (val >> 8);
+                            pixel_abgr.r = 0xFF & val;
 
-                    //         HSV_p pixel_hsv;
-                    //         pixel_hsv = u32_pix_to_HSV(pixel_abgr);
+                            HSV_p pixel_hsv;
+                            pixel_hsv = u32_pix_to_HSV(pixel_abgr);
 
-                    //         if ((pixel_hsv.h >= state->Hmin) && 
-                    //             (pixel_hsv.h <= state->Hmax) &&
-                    //             (pixel_hsv.s >= state->Smin) &&
-                    //             (pixel_hsv.s <= state->Smax) &&
-                    //             (pixel_hsv.v >= state->Vmin) &&
-                    //             (pixel_hsv.v <= state->Vmax))
-                    //         {
-                    //             state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
-                    //         }
-                    //     }
-                    // }
+                            if ((pixel_hsv.h >= state->Hmin) && 
+                                (pixel_hsv.h <= state->Hmax) &&
+                                (pixel_hsv.s >= state->Smin) &&
+                                (pixel_hsv.s <= state->Smax) &&
+                                (pixel_hsv.v >= state->Vmin) &&
+                                (pixel_hsv.v <= state->Vmax))
+                            {
+                                state->u32_im->buf[state->u32_im->stride * p + q] = 0xFFE600CB;
+                            }
+                        }
+                    }
 
                     vx_object_t *vim = vxo_image_from_u32 (state->u32_im,
                                                            VXO_IMAGE_FLIPY,

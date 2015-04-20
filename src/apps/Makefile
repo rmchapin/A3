@@ -39,13 +39,19 @@ BIN_EECS467_GUI_EXAMPLE = $(BIN_PATH)/eecs467_gui_example
 BIN_EECS467_REXARM_EXAMPLE = $(BIN_PATH)/eecs467_rexarm_example
 BIN_EECS467_MAIN = $(BIN_PATH)/eecs467_main
 BIN_EECS467_CALIBRATION = $(BIN_PATH)/eecs467_calibration
+BIN_EECS467_ARM = $(BIN_PATH)/eecs467_arm_test
+BIN_EECS467_TEST = $(BIN_PATH)/eecs467_test
 
 ALL = $(LIB_EECS467) $(BIN_EECS467_GUI_EXAMPLE) \
 	$(BIN_EECS467_REXARM_EXAMPLE) \
 	$(BIN_EECS467_CALIBRATION) \
-	$(BIN_EECS467_MAIN)
+	$(BIN_EECS467_MAIN) \
+	$(BIN_EECS467_ARM) \
+	$(BIN_EECS467_TEST)
 
 all: $(ALL)
+
+test: $(BIN_EECS467_TEST)
 
 $(LIB_EECS467): $(LIBEECS467_OBJS) $(LIBDEPS)
 	@echo "\t$@"
@@ -66,6 +72,14 @@ $(BIN_EECS467_MAIN): eecs467_main.o VxHandler.o eecs467_util.o $(LIBDEPS)
 $(BIN_EECS467_CALIBRATION): eecs467_calibration.o $(LIB_EECS467) $(LIBDEPS)
 	@echo "\t$@"
 	@$(CXX) -o $@ $^ $(LDFLAGS)
+
+$(BIN_EECS467_ARM): eecs467_arm_test.o $(LIBDEPS)
+	@echo "\t$@"
+	@$(CXX) -o $@ $^ $(LDFLAGS)
+
+$(BIN_EECS467_TEST): eecs467_test.o $(LIBDEPS)
+	@echo "\t$@"
+	@$(CXX) -o $@ $^ $(LDFLAGS)	
 
 clean:
 	@rm -f *.o *~ *.a

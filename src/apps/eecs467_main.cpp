@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <chrono>
 #include <stdio.h>
+#include <string>
 
 #include "VxHandler.hpp"
 #include "a3/BallFinder.hpp"
@@ -96,7 +97,7 @@ int main() {
 		}
 	}
 
-	std::ifstream colorFile("yellow.txt");
+	std::ifstream colorFile("pink.txt");
 	if (!colorFile.is_open()) {
 		printf("couldn't open color file\n");
 		exit(1);
@@ -115,13 +116,15 @@ int main() {
 	
 	int emptyCount = 0;
 	int emptyThresh = 20;
+	int depthThresh = 1500;
 	image_u32_t* rgbIm = nullptr;
 	image_u32_t* depthIm = nullptr;
 	while (1) {
 		image_u32_t* temp = Freenect::getImage();
+		image_u32_t* vxDisp;
 		if (temp != nullptr) {
 			rgbIm = temp;
-			image_u32_t* vxDisp = image_u32_copy(rgbIm);
+			vxDisp = image_u32_copy(rgbIm);
 
 			for (int t = 0; t < vxDisp->width; t++)
 			{
@@ -151,7 +154,6 @@ int main() {
 				}
 			}
 			vx.setImage(vxDisp);
-			image_u32_destroy(vxDisp);
 		}
 
 		//std::cout << "got image" << std::endl;
@@ -198,15 +200,27 @@ int main() {
 		std::vector<BlobDetector::Blob> blobs = 
 			BlobDetector::findBlobs(rgbIm, hsvThresh, 30);
 
+		static int frame_count = 0;
+
 		if (blobs.size() == 0) {
 			// printf("no blobs found!\n");
 			emptyCount++;
+// char path[50];
+// sprintf(path, "frame_%d_noblob.pnm", frame_count);
+// image_u32_write_pnm(vxDisp, path);
+// frame_count++;
 			if (emptyCount > emptyThresh) {
 				emptyCount = 0;
 				pts.clear();
+				dynamixel_command_list_t cmd = Arm::createCommand(std::array<float, 3>{{0, 0, 0}});
+				Arm::instance()->addCommandList(cmd);
 			}
 			continue;
 		} else {
+char path[50];
+sprintf(path, "frame_%d_blob.pnm", frame_count);
+// image_u32_write_pnm(vxDisp, path);
+frame_count++;
 			emptyCount = 0;
 		}
 
@@ -219,12 +233,16 @@ int main() {
 		BlobDetector::Blob biggest = blobs.front();
 		uint16_t depth = depthIm->buf[depthIm->stride * biggest.y + biggest.x];
 
+		if (depth > depthThresh) {
+			continue;
+		}
+
 		// getting real coordinates
 		std::array<double, 2> realCoord = Freenect::cameraToWorld(biggest.x, biggest.y, depth);
 
 		// do some manipulation
 		Eigen::Matrix<double, 4, 1> pt;
-		pt(0) = -realCoord[0];
+		pt(0) = realCoord[0];
 		pt(1) = (double) depth;
 		pt(2) = realCoord[1];
 		pt(3) = 1;
@@ -242,17 +260,27 @@ int main() {
 		}
 
 		// fitting curve and getting intersection
-		auto curve = LineFitter::fitCurve(pts);
-		if (curve.first[1] > 0) {
-			printf("curve going up\n");
-		}
+		auto curve = LineFitter::RANSACCurve(pts);
+		// if (curve.first[1] > 0) {
+		// 	printf("curve going up\n");
+		// }
+		printf("linear: %f, %f\n", curve.second[0], curve.second[1]);
+		printf("quad: %f, %f, %f\n", curve.first[0], 
+			curve.first[1], curve.first[2]);
 		std::array<float, 2> intersection;
 		if (!LineFitter::getIntersectionZ(0, intersection, curve)) {
 			printf("unable to get intersection\n");
 			continue;
 		}
 		printf("Move arm to: %f, %f\n", intersection[0], intersection[1]);
+		if (std::isnan(intersection[0]) ||
+			std::isnan(intersection[1])) {
+			continue;
+		}
 		
+		float tempX = -intersection[0];
+		intersection[0] = intersection[1];
+		intersection[1] = tempX;
 
 		// try to move arm to place
 		std::array<float, 3> angles;
@@ -265,7 +293,6 @@ int main() {
 
 		dynamixel_command_list_t cmd = Arm::createCommand(angles);
 		Arm::instance()->addCommandList(cmd);
-		
 
 		if (depthIm != nullptr) {
 			image_u32_destroy(depthIm);

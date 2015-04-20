@@ -82,7 +82,7 @@ findBlobsFromMatrix(Eigen::Matrix<BlobCell, Eigen::Dynamic, Eigen::Dynamic>& mat
 				}
 				std::array<int, 2> center = findCentroid(currBlob);
 				// if (!isCircular(currBlob, center)) {
-				// 	printf("not circular\n");
+				// 	// printf("not circular\n");
 				// 	continue;
 				// }
 				ret.push_back({center[0], center[1], (int)currBlob.size()});
@@ -196,7 +196,7 @@ bool isCircular(const std::vector<std::array<int, 2>>& points,
 	}
 	float ratio = (float) xVar / yVar;
 	// printf("ratio: %f\n", ratio);
-	return std::fabs(ratio - 0.5) < 0.2;
+	return std::fabs(ratio - 1.0) < 0.6;
 }
 
 }

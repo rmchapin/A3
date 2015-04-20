@@ -12,16 +12,22 @@ int main() {
 	LcmHandler::instance()->launchThreads();
 
 	float r, theta;
+	float x, y;
 	while (1) {
-		std::cout << "r: ";
-		std::cin >> r;
-		std::cout << "theta: ";
-		std::cin >> theta;
+		// std::cout << "r: ";
+		// std::cin >> r;
+		// std::cout << "theta: ";
+		// std::cin >> theta;
+		std::cout << "x: ";
+		std::cin >> y;
+		y = -y;
+		std::cout << "y: ";
+		std::cin >> x;
 		dynamixel_status_list_t statusList = Arm::instance()->getStatus();
 
 		std::array<float, 3> angles; 
-		if (Arm::inverseKinematicsPolar(
-			std::array<float, 2>{{r, theta}}, 
+		if (Arm::inverseKinematicsCartesian(
+			std::array<float, 2>{{x, y}}, 
 			statusList, angles)) {
 			printf("Angles: %f, %f, %f\n", angles[0], angles[1], angles[2]);
 
