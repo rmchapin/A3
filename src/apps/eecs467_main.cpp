@@ -149,7 +149,7 @@ int main() {
 						(pixel_hsv.v >= hsvThresh[4]) &&
 						(pixel_hsv.v <= hsvThresh[5]))
 					{
-						vxDisp->buf[vxDisp->stride * y + t] = 0xFFE600CB;
+						vxDisp->buf[vxDisp->stride * y + t] = 0xFFC0FF00;
 					}
 				}
 			}
