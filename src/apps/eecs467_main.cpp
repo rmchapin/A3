@@ -208,6 +208,32 @@ int main() {
 		printf("ball at: (%lf, %lf, %lf)\n", newPt(0),
 			newPt(1), newPt(2));
 
+		// going into arm motion coordinates
+		std::array<float, 2> loc;
+		loc[0] = newPt(1);
+		loc[1] = -newPt(0);
+
+		// try to move arm to place
+		std::array<float, 3> angles;
+		if (!Arm::inverseKinematicsCartesian(loc,
+			Arm::instance()->getStatus(),
+			angles)) {
+			printf("unable to move arm to location\n");
+			continue;
+		}
+
+		dynamixel_command_list_t cmd = Arm::createCommand(angles);
+		Arm::instance()->addCommandList(cmd);
+
+		if (depthIm != nullptr) {
+			image_u32_destroy(depthIm);
+		}
+		depthIm = nullptr;
+		if (rgbIm != nullptr) {
+			image_u32_destroy(rgbIm);
+		}
+		rgbIm = nullptr;
+
 		// pts.push_back(std::array<double, 3>{{
 		// 	newPt(0), newPt(1), newPt(2)
 		// 	}});
