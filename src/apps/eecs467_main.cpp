@@ -180,6 +180,7 @@ int main() {
 				dynamixel_command_list_t cmd = Arm::createCommand(std::array<float, 3>{{0, 0, 0}});
 				Arm::instance()->addCommandList(cmd);
 			}
+			emptyCount++;
 			continue;
 		} else {
 			emptyCount = 0;

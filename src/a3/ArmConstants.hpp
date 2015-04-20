@@ -17,7 +17,7 @@ static const std::array<float, 2> armAngleThresh1{{-2.1, 2.0}};
 static const std::array<float, 2> armAngleThresh2{{-2.0, 2.0}};
 static const std::array<float, 2> armAngleThresh3{{-2, 2}};
 
-static const float armTorque = 0.7;
+static const float armTorque = 0.5;
 static const float armSpeed = 1;
 
 #endif /* ARM_CONSTANTS_HPP */
